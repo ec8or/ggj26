@@ -161,8 +161,7 @@ function getReason(reason) {
     'wrong_tap': 'Tapped when you shouldn\'t have!',
     'missed_tap': 'Didn\'t tap when you should have!',
     'too_slow': 'Too slow!',
-    'too_early': 'Tapped too early!',
-    'failed_bonus': 'Failed bonus round!'
+    'too_early': 'Tapped too early!'
   };
   return reasons[reason] || 'Eliminated!';
 }
