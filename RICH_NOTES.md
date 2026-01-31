@@ -168,6 +168,13 @@ You can edit this array in Inspector to change the flow.
 - Maybe scale-in when masks appear
 - Maybe pulse/glow on active masks
 
+#### Scene Organization
+- **Clean up MainGame scene** - it's a bit chaotic right now
+- Organize UI elements into logical holders/containers
+- No need to split into multiple scenes, just better hierarchy
+- Group related panels together (e.g., all round-specific UI under holders)
+- Makes it easier to find things and toggle visibility
+
 #### New Feature: Chaos Card
 - **Right before Advanced Snap**: Randomize all remaining player masks
 - Show big "CHAOS!" animation/text on screen
