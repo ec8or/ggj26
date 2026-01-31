@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Crowd Control</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Connection Status -->
+  <div id="status" class="status">Connecting...</div>
+
+  <!-- Tap Button (now displays the mask image) -->
+  <button id="tap-btn" class="tap-button hidden">
+    <img id="mask-img" src="" alt="Your Mask">
+  </button>
+
+  <!-- Eliminated Screen -->
+  <div id="eliminated" class="eliminated hidden">
+    <h1>YOU'RE OUT!</h1>
+    <p id="eliminated-reason"></p>
+    <p id="eliminated-place"></p>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
