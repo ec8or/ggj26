@@ -47,7 +47,7 @@ public class PrecisionRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowBonusRoundTitle($"PRECISION ROUND\n\nTap at exactly {targetTime:F1}s!");
+            UIManager.Instance.ShowRoundTitle($"PRECISION ROUND\n\nTap at exactly {targetTime:F1}s!");
         }
     }
 
@@ -92,7 +92,7 @@ public class PrecisionRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.HideBonusRoundTitle();
+            UIManager.Instance.HideRoundTitle();
         }
 
         // Calculate deviation from target time

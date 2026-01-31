@@ -83,7 +83,7 @@ public class AdvancedRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowBonusRoundTitle("ADVANCED ROUND\nFind your mask!");
+            UIManager.Instance.ShowRoundTitle("ADVANCED ROUND\nFind your mask!");
         }
         else
         {
@@ -223,7 +223,7 @@ public class AdvancedRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.HideBonusRoundTitle();
+            UIManager.Instance.HideRoundTitle();
         }
 
         if (MaskManager.Instance != null)

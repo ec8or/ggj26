@@ -51,7 +51,7 @@ public class ReactionRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowBonusRoundTitle("REACTION ROUND\n\nWAIT...");
+            UIManager.Instance.ShowRoundTitle("REACTION ROUND\n\nWAIT...");
             UIManager.Instance.ShowRedIndicator(); // Show RED square
         }
 
@@ -71,7 +71,7 @@ public class ReactionRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowBonusRoundTitle("REACTION ROUND\n\nGO!!!");
+            UIManager.Instance.ShowRoundTitle("REACTION ROUND\n\nGO!!!");
             UIManager.Instance.ShowGreenIndicator(); // Show GREEN square
         }
     }
@@ -125,7 +125,7 @@ public class ReactionRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.HideBonusRoundTitle();
+            UIManager.Instance.HideRoundTitle();
             UIManager.Instance.HideReactionIndicators(); // Hide red/green squares
         }
 
