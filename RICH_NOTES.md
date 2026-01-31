@@ -134,8 +134,10 @@ Mobile Phone (HTML/JS)  →  Node.js Server (relay)  →  Unity (ALL game logic)
 ### Round Sequence
 Defined in `GameManager.roundSequence[]`:
 ```csharp
-Snap → Snap → Sprint → Snap → Reaction → Snap → Precision → Advanced → ...
+Snap → Sprint → Reaction → [CHAOS CARD] → Advanced Snap → FINAL
 ```
+
+**Chaos Card**: Right before Advanced Snap, we randomize all remaining player masks! This adds unpredictability - players get reassigned to new masks, keeping everyone on their toes.
 
 You can edit this array in Inspector to change the flow.
 
@@ -166,27 +168,38 @@ You can edit this array in Inspector to change the flow.
 - Maybe scale-in when masks appear
 - Maybe pulse/glow on active masks
 
+#### New Feature: Chaos Card
+- **Right before Advanced Snap**: Randomize all remaining player masks
+- Show big "CHAOS!" animation/text on screen
+- Emit new mask assignments to all players
+- Give players 3-5 seconds to see their new mask before Advanced Snap begins
+- This keeps players on their toes and adds unpredictability
+
 #### Minor Fixes
 - **Precision Round needs traffic lights** (Red → Yellow → Green) so players know when to start counting to 5 seconds
 - Reaction Round already has WAIT → GO logic, but could use visual polish
 
 #### Balance (Critical!)
-**Target**: 40 players → 30 → 10 → 2 → FINAL
+**Target**: 40 players → 30 → 15 → 8 → 2 → FINAL
+
+**⚠️ NOTE: These numbers are NOT final! Adjust based on playtesting.**
 
 Work backwards:
 - Round 1 (Snap): Eliminate ~10 players (40→30)
-- Round 2 (Sprint): Eliminate ~20 players (30→10)
-- Round 3 (Reaction): Eliminate ~8 players (10→2)
+- Round 2 (Sprint): Eliminate ~15 players (30→15)
+- Round 3 (Reaction): Eliminate ~7 players (15→8)
+- **[CHAOS CARD]** - Randomize all masks!
+- Round 4 (Advanced Snap): Eliminate ~6 players (8→2)
 - FINAL: Top 2 face off (or public vote? TBD)
 
 Tune these values:
-- `RoundController.minMasks / maxMasks` - how many shown
-- `RoundController.roundDuration` - time pressure
+- `RoundController.minMasks / maxMasks` - how many shown (3-5 for Snap, more for Advanced)
+- `RoundController.roundDuration` - time pressure (currently 5s)
 - `SprintRound.requiredTaps` - currently 100, maybe too hard?
 - `ReactionRound` - currently top 50% survive
-- `PrecisionRound.targetTime` - currently 5.0s
+- `AdvancedRound` - shows MORE masks (harder to spot yours)
 
-**Goal**: Predictable eliminations. We want ~25% eliminated per round for first 2 rounds, then ramp up.
+**Goal**: Predictable eliminations. Each round should cut down players smoothly to create drama.
 
 #### Reset System
 - If we have time for 2 rounds in the presentation, add a "Reset Game" function
