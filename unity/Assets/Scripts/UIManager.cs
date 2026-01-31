@@ -118,8 +118,8 @@ public class UIManager : MonoBehaviour
     {
         if (playerCountText != null && PlayerManager.Instance != null)
         {
-            int total = PlayerManager.Instance.GetTotalCount();
-            playerCountText.text = $"{total} Players Connected";
+            int alive = PlayerManager.Instance.GetAliveCount();
+            playerCountText.text = $"{alive} Players Left";
         }
     }
 

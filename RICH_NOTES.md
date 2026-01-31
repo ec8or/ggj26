@@ -1,0 +1,219 @@
+# Hey Rich! 👋
+
+Thanks for jumping in to save the day! Here's what you need to know:
+
+---
+
+## What We're Building
+
+**Crowd Control** - 40-player battle royale where the audience ARE the players.
+
+**Format**: 5-minute presentation
+- 1 min intro/rules
+- 2-4 min gameplay (ideally 2 rounds, minimum 1 round)
+- Keep it ON RAILS - no complex choices, just pure chaos
+
+**How it works**: Everyone scans QR code → gets assigned a mask → when your mask appears on screen, TAP YOUR PHONE → don't tap when it's not your mask → last player standing wins!
+
+---
+
+## Architecture (The TL;DR)
+
+```
+Mobile Phone (HTML/JS)  →  Node.js Server (relay)  →  Unity (ALL game logic)
+        ↓                          ↓                         ↓
+   Sends taps              Forwards messages          Decides everything
+   Shows mask              No validation              Runs rounds
+   Vibrates                Dumb pipe                  Eliminates players
+```
+
+**Key point**: Unity is the authority. Server just relays Socket.io messages. Client is thin - tap button + mask image.
+
+**Events**:
+- Phone → Server → Unity: `tap` events
+- Unity → Server → Phone: `mask_assigned`, `eliminated`, `game_state`
+
+---
+
+## Unity Code Setup
+
+### Scene Structure
+`Assets/Scenes/MainGame.unity` - One massive UI Canvas with a bunch of panels. Yeah, it's messy, but it works. You'll figure it out.
+
+### Scripts Overview (`Assets/Scripts/`)
+
+**Core Singletons** (all on GameManager GameObject):
+
+1. **`NetworkManager.cs`**
+   - SocketIOUnity connection to server
+   - Events: `OnPlayerJoined`, `OnPlayerLeft`, `OnTapReceived`
+   - Emits: `mask_assigned`, `game_state`, `eliminated`
+   - Thread-safe event queue for main thread processing
+
+2. **`PlayerManager.cs`**
+   - Tracks up to 60 players (we're using ~40)
+   - Assigns unique mask IDs (0-59)
+   - `EliminatePlayer(playerId, reason)` - call this to kill someone
+   - `GetAlivePlayers()` - returns List<Player>
+
+3. **`GameManager.cs`**
+   - State machine: `Lobby → Playing → GameOver`
+   - Has `roundSequence[]` array defining round order
+   - Press SPACE to start game
+   - Calls `NextRound()` after each round completes
+
+4. **`RoundController.cs`**
+   - **Main round** (the core game mode)
+   - Shows 3-5 random masks
+   - 5 second timer
+   - Eliminates: wrong tap (tapped but mask not active) OR missed tap (didn't tap but mask was active)
+
+5. **`MaskManager.cs`**
+   - Loads sprites from `Resources/Masks/mask_0.png` to `mask_59.png`
+   - `DisplayMasks(List<int> maskIds)` - shows masks on screen
+   - `ClearMasks()` - removes them
+   - Has placeholder colored circles for missing masks
+
+6. **`UIManager.cs`**
+   - Shows/hides panels
+   - Updates timer, player count, etc.
+   - All TextMeshPro references linked in Inspector
+
+**Bonus Round Scripts** (`Assets/Scripts/BonusRounds/`):
+
+7. **`SprintRound.cs`** - Tap 100 times in 10 seconds
+8. **`ReactionRound.cs`** - Wait for GO signal, fastest 50% survive
+9. **`PrecisionRound.cs`** - Tap at exactly 5.0 seconds
+10. **`AdvancedRound.cs`** - Advanced Snap (shows MORE masks)
+
+### Conventions
+- All managers are singletons with `Instance` property
+- Use events for decoupling (e.g., `NetworkManager.OnTapReceived += HandleTap`)
+- Round classes have `Start[RoundType]Round()` and evaluate in their own Update loop
+- Call `GameManager.Instance.NextRound()` when round completes
+- Elimination reasons: `"wrong_tap"`, `"missed_tap"`, `"too_slow"`, `"failed_bonus"`
+
+### Round Sequence
+Defined in `GameManager.roundSequence[]`:
+```csharp
+Main → Main → Sprint → Main → Reaction → Main → Precision → Advanced → ...
+```
+
+You can edit this array in Inspector to change the flow.
+
+---
+
+## To-Do List
+
+### **Nils** - Phone UI & Juice
+- Mobile web client polish
+- Haptic feedback improvements
+- Maybe some GFX from Disa
+
+### **Disa** - Art & Design
+- **AS MANY MASKS AS POSSIBLE** (targeting 40 minimum)
+- Background artwork
+- UI elements (keep text/icons minimal!)
+- Traffic light graphics for Reaction/Precision rounds
+
+### **Rich** (You!) - Unity Polish & Balance
+
+#### Layout & Presentation
+- **All round types need layout grids** (Main/Snap, Advanced, Precision, Sprint, Reaction)
+- Make masks display **as large as possible** on screen
+- Grid arrangements that scale with mask count (3-5 for Main, more for Advanced)
+
+#### Animations
+- Small bobbing animation on masks (idle bounce)
+- Maybe scale-in when masks appear
+- Maybe pulse/glow on active masks
+
+#### Minor Fixes
+- **Precision Round needs traffic lights** (Red → Yellow → Green) so players know when to start counting to 5 seconds
+- Reaction Round already has WAIT → GO logic, but could use visual polish
+
+#### Balance (Critical!)
+**Target**: 40 players → 30 → 10 → 2 → FINAL
+
+Work backwards:
+- Round 1 (Main): Eliminate ~10 players (40→30)
+- Round 2 (Sprint): Eliminate ~20 players (30→10)
+- Round 3 (Reaction): Eliminate ~8 players (10→2)
+- FINAL: Top 2 face off (or public vote? TBD)
+
+Tune these values:
+- `RoundController.minMasks / maxMasks` - how many shown
+- `RoundController.roundDuration` - time pressure
+- `SprintRound.requiredTaps` - currently 100, maybe too hard?
+- `ReactionRound` - currently top 50% survive
+- `PrecisionRound.targetTime` - currently 5.0s
+
+**Goal**: Predictable eliminations. We want ~25% eliminated per round for first 2 rounds, then ramp up.
+
+#### Reset System
+- If we have time for 2 rounds in the presentation, add a "Reset Game" function
+- Clear all players, return to Lobby, ready for round 2
+
+---
+
+## Quick Start
+
+1. **Start Server**:
+   ```bash
+   cd server
+   npm install
+   npm start
+   ```
+   Server shows QR code in terminal.
+
+2. **Open Unity**:
+   - Open `unity/` folder in Unity 2022.3 LTS
+   - Open `MainGame` scene
+   - Press Play
+
+3. **Test**:
+   - Scan QR with phone
+   - Press SPACE in Unity to start
+   - Should work!
+
+4. **Connect to Server**:
+   - If server URL changed, update `NetworkManager.serverUrl` in Inspector
+   - Use ngrok if testing on phones: `ngrok http 3000`
+
+---
+
+## Files You'll Probably Touch
+
+- `GameManager.cs` - round sequence, balance tweaks
+- `RoundController.cs` - main round logic and timing
+- `MaskManager.cs` - layout/grid arrangement
+- `SprintRound.cs`, `ReactionRound.cs`, `PrecisionRound.cs` - bonus round balance
+- `UIManager.cs` - if you add traffic lights or other UI
+- Unity Scene - positioning, animations, visual polish
+
+---
+
+## Documentation
+
+- `/unity/STATUS.md` - What's done, what remains
+- `/unity/CLAUDE.md` - Unity context and architecture
+- `/server/STATUS.md` - Server status
+- `/DESIGNER_BRIEF.md` - Mask categories and specs
+
+---
+
+## Notes
+
+- We have 10 real masks so far (mask_0 to mask_9), targeting 40 total
+- Placeholder colored circles fill in the gaps
+- Server is at `http://localhost:3000` (or ngrok URL for phones)
+- Everything is Socket.io WebSockets
+- Mobile client is in `server/public/` (HTML/CSS/JS)
+
+---
+
+You got this! If anything's unclear, the code is pretty well commented. The scene is a bit chaotic but all the scripts are clean.
+
+Let's make this thing SHINE! ✨
+
+— Nils & Claude
