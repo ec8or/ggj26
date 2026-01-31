@@ -158,27 +158,39 @@ Tune these values:
 
 ## Quick Start
 
+**Prerequisites**: Make sure you have Node.js installed (`node --version` should return v16+)
+
 1. **Start Server**:
    ```bash
    cd server
-   npm install
-   npm start
+   npm install    # Install dependencies (first time only)
+   npm start      # Start the server
    ```
-   Server shows QR code in terminal.
+   Server will show QR code in terminal and run at `http://localhost:3000`
 
-2. **Open Unity**:
+2. **Start Unity** (do this BEFORE connecting clients):
    - Open `unity/` folder in Unity 2022.3 LTS
    - Open `MainGame` scene
    - Press Play
+   - Unity Console should show "✅ Connected to server"
 
-3. **Test**:
-   - Scan QR with phone
-   - Press SPACE in Unity to start
-   - Should work!
+3. **Test with Browser Tab** (easiest way to test):
+   - Open browser to `http://localhost:3000`
+   - You'll see your mask and a big TAP button
+   - Unity Console should show "👤 Player joined" and "✅ Player assigned Mask #X"
+   - Open more tabs to simulate multiple players
 
-4. **Connect to Server**:
-   - If server URL changed, update `NetworkManager.serverUrl` in Inspector
-   - Use ngrok if testing on phones: `ngrok http 3000`
+4. **Play a Round**:
+   - Press SPACE in Unity to start game
+   - Masks appear on Unity screen
+   - Tap in browser when you see your mask
+   - Don't tap when your mask isn't shown
+   - Last player standing wins!
+
+5. **Test with Real Phones** (when ready):
+   - Use ngrok for network access: `ngrok http 3000`
+   - Update `NetworkManager.serverUrl` in Unity Inspector with ngrok URL
+   - Scan QR code or manually visit URL on phones
 
 ---
 
