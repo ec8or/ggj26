@@ -101,7 +101,7 @@ Mobile Phone (HTML/JS)  →  Node.js Server (relay)  →  Unity (ALL game logic)
    - Calls `NextRound()` after each round completes
 
 4. **`RoundController.cs`**
-   - **Main round** (the core game mode)
+   - **Snap round** (the core game mode)
    - Shows 3-5 random masks
    - 5 second timer
    - Eliminates: wrong tap (tapped but mask not active) OR missed tap (didn't tap but mask was active)
@@ -134,7 +134,7 @@ Mobile Phone (HTML/JS)  →  Node.js Server (relay)  →  Unity (ALL game logic)
 ### Round Sequence
 Defined in `GameManager.roundSequence[]`:
 ```csharp
-Main → Main → Sprint → Main → Reaction → Main → Precision → Advanced → ...
+Snap → Snap → Sprint → Snap → Reaction → Snap → Precision → Advanced → ...
 ```
 
 You can edit this array in Inspector to change the flow.
@@ -157,9 +157,9 @@ You can edit this array in Inspector to change the flow.
 ### **Rich** (You!) - Unity Polish & Balance
 
 #### Layout & Presentation
-- **All round types need layout grids** (Main/Snap, Advanced, Precision, Sprint, Reaction)
+- **All round types need layout grids** (Snap, Advanced, Precision, Sprint, Reaction)
 - Make masks display **as large as possible** on screen
-- Grid arrangements that scale with mask count (3-5 for Main, more for Advanced)
+- Grid arrangements that scale with mask count (3-5 for Snap, more for Advanced)
 
 #### Animations
 - Small bobbing animation on masks (idle bounce)
@@ -174,7 +174,7 @@ You can edit this array in Inspector to change the flow.
 **Target**: 40 players → 30 → 10 → 2 → FINAL
 
 Work backwards:
-- Round 1 (Main): Eliminate ~10 players (40→30)
+- Round 1 (Snap): Eliminate ~10 players (40→30)
 - Round 2 (Sprint): Eliminate ~20 players (30→10)
 - Round 3 (Reaction): Eliminate ~8 players (10→2)
 - FINAL: Top 2 face off (or public vote? TBD)

@@ -44,7 +44,7 @@ public class SprintRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowBonusRoundTitle($"SPRINT ROUND\nTap {requiredTaps}x in {roundDuration}s!");
+            UIManager.Instance.ShowRoundTitle($"SPRINT ROUND\nTap {requiredTaps}x in {roundDuration}s!");
         }
     }
 
@@ -216,7 +216,7 @@ public class SprintRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.HideBonusRoundTitle();
+            UIManager.Instance.HideRoundTitle();
         }
 
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();

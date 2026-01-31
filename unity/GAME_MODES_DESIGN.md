@@ -12,7 +12,7 @@
 ```
 Lobby
   ↓ (SPACE pressed)
-Playing (Main Rounds) ←──┐
+Playing (Snap Rounds) ←──┐
   ↓ (every 5 rounds)      │
 BonusRound               │
   ↓ (cycle back) ─────────┘
@@ -21,7 +21,7 @@ GameOver
 ```
 
 ### Existing Modes:
-1. **Main Round**: Show 3-5 masks, tap if yours is shown
+1. **Snap Round**: Show 3-5 masks, tap if yours is shown
 2. **Sprint Bonus**: Tap 100x in 10 seconds
 3. **Reaction Bonus**: Fastest 50% after GO signal
 4. **Precision Bonus**: Tap at exactly 5.0 seconds

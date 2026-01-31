@@ -7,10 +7,10 @@ public class GameManager : MonoBehaviour
     public enum GameState { Lobby, Playing, GameOver }
     public GameState CurrentState { get; private set; } = GameState.Lobby;
 
-    public enum RoundType { Main, Sprint, Reaction, Precision, Advanced }
+    public enum RoundType { Snap, Sprint, Reaction, Precision, Advanced }
 
     public int CurrentRound { get; private set; } = 0;
-    private RoundType currentRoundType = RoundType.Main;
+    private RoundType currentRoundType = RoundType.Snap;
 
     [Header("Game Settings")]
     [SerializeField] private int minPlayersToStart = 2;
@@ -19,20 +19,20 @@ public class GameManager : MonoBehaviour
     [Header("Round Sequence (Edit This!)")]
     [SerializeField] private RoundType[] roundSequence = new RoundType[]
     {
-        RoundType.Main,      // Round 1
-        RoundType.Main,      // Round 2
+        RoundType.Snap,      // Round 1
+        RoundType.Snap,      // Round 2
         RoundType.Sprint,    // Round 3
-        RoundType.Main,      // Round 4
+        RoundType.Snap,      // Round 4
         RoundType.Advanced,  // Round 5 - Hard mode!
         RoundType.Reaction,  // Round 6
-        RoundType.Main,      // Round 7
-        RoundType.Main,      // Round 8
+        RoundType.Snap,      // Round 7
+        RoundType.Snap,      // Round 8
         RoundType.Precision, // Round 9
-        RoundType.Main,      // Round 10
+        RoundType.Snap,      // Round 10
         RoundType.Advanced,  // Round 11 - Hard mode again!
         RoundType.Sprint,    // Round 12
-        RoundType.Main,      // Round 13
-        RoundType.Main,      // Round 14
+        RoundType.Snap,      // Round 13
+        RoundType.Snap,      // Round 14
         RoundType.Reaction,  // Round 15
         // Repeats after this...
     };
@@ -119,7 +119,7 @@ public class GameManager : MonoBehaviour
         // Start the appropriate round type
         switch (currentRoundType)
         {
-            case RoundType.Main:
+            case RoundType.Snap:
                 CurrentState = GameState.Playing;
                 if (roundController != null)
                 {

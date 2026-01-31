@@ -41,7 +41,7 @@
    - Debug key (N) to skip rounds
 
 4. ✅ `Assets/Scripts/RoundController.cs` (110 lines)
-   - Main round logic
+   - Snap round logic
    - Random mask selection (3-5 per round)
    - Tap tracking during round
    - Timer countdown (5 seconds default)
@@ -502,7 +502,7 @@ Coordinate with server developer to verify message format matches.
 - [ ] Scene created
 - [ ] Game starts
 - [ ] 10 players work
-- [ ] Main rounds work
+- [ ] Snap rounds work
 
 ### Target:
 - [ ] 60 players supported

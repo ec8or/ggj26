@@ -22,9 +22,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI roundNumberText;
     [SerializeField] private TextMeshProUGUI roundTimerText;
 
-    [Header("Bonus Round")]
-    [SerializeField] private GameObject bonusRoundPanel;
-    [SerializeField] private TextMeshProUGUI bonusRoundTitleText;
+    [Header("Round Title")]
+    [SerializeField] private GameObject roundTitlePanel;
+    [SerializeField] private TextMeshProUGUI roundTitleText;
 
     [Header("Reaction Round Indicators")]
     [SerializeField] private GameObject redIndicator; // WAIT state
@@ -48,7 +48,7 @@ public class UIManager : MonoBehaviour
     {
         ShowQRCode();
         HideWinner();
-        HideBonusRoundTitle();
+        HideRoundTitle();
         HideReactionIndicators();
 
         // Subscribe to player join/leave for lobby display
@@ -141,25 +141,25 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Bonus Round
-    public void ShowBonusRoundTitle(string title)
+    // Round Title
+    public void ShowRoundTitle(string title)
     {
-        if (bonusRoundPanel != null)
+        if (roundTitlePanel != null)
         {
-            bonusRoundPanel.SetActive(true);
+            roundTitlePanel.SetActive(true);
         }
 
-        if (bonusRoundTitleText != null)
+        if (roundTitleText != null)
         {
-            bonusRoundTitleText.text = title;
+            roundTitleText.text = title;
         }
     }
 
-    public void HideBonusRoundTitle()
+    public void HideRoundTitle()
     {
-        if (bonusRoundPanel != null)
+        if (roundTitlePanel != null)
         {
-            bonusRoundPanel.SetActive(false);
+            roundTitlePanel.SetActive(false);
         }
     }
 

@@ -34,7 +34,7 @@
 - Player count displays
 
 ### Milestone 2: Core Game Loop (Hour 6-18)
-- Main round logic (show masks, detect correct taps)
+- Snap round logic (show masks, detect correct taps)
 - Elimination system
 - Kill feed display
 - 60 mask sprites loaded

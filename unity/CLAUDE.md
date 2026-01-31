@@ -9,7 +9,7 @@ You are implementing the **game logic and display** for a 50-60 player game jam 
 **IN SCOPE**:
 - Connect to Socket.io server (via SocketIOUnity package)
 - Track 60 players (alive/dead, mask IDs)
-- Run main rounds (show masks, evaluate taps, eliminate)
+- Run Snap rounds (show masks, evaluate taps, eliminate)
 - Run bonus rounds (sprint, reaction, precision)
 - Display UI (QR code, kill feed, timers, player count)
 - Load and display 60 mask sprites
@@ -25,7 +25,7 @@ You are implementing the **game logic and display** for a 50-60 player game jam 
 1. `/Assets/Scripts/NetworkManager.cs` - Socket.io connection
 2. `/Assets/Scripts/GameManager.cs` - State machine (Lobby → Playing → GameOver)
 3. `/Assets/Scripts/PlayerManager.cs` - Track 60 players
-4. `/Assets/Scripts/RoundController.cs` - Main round logic
+4. `/Assets/Scripts/RoundController.cs` - Snap round logic
 5. `/Assets/Scripts/MaskManager.cs` - Load/display masks
 6. `/Assets/Scripts/UIManager.cs` - QR, kill feed, timers
 7. `/Assets/Scripts/BonusRounds/SprintRound.cs` - Tap counter bonus
@@ -46,7 +46,7 @@ You are implementing the **game logic and display** for a 50-60 player game jam 
 - Load with: `Resources.LoadAll<Sprite>("Masks")`
 
 ### Game Logic:
-- Main round: Show 3-5 random masks, eliminate wrong/missing taps
+- Snap round: Show 3-5 random masks, eliminate wrong/missing taps
 - Sprint round: Tap 100+ times in 10 seconds
 - Reaction round: Fastest 50% after GO signal survive
 - Precision round: Closest to 5.0 seconds survive
@@ -92,7 +92,7 @@ You are implementing the **game logic and display** for a 50-60 player game jam 
 ## Timeline
 
 - Hours 0-6: Connection + player tracking
-- Hours 6-18: Core game loop (main rounds)
+- Hours 6-18: Core game loop (Snap rounds)
 - Hours 18-24: Bonus rounds
 - Ongoing: Polish (tweens, kill feed, masks)
 
