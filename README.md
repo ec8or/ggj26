@@ -1,4 +1,4 @@
-# Crowd Control GGJ26
+# Mask Royale - GGJ26
 
 ## Quick Start
 

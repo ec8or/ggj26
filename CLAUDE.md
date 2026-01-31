@@ -1,7 +1,7 @@
-# Crowd Control GGJ26
+# Mask Royale - GGJ26
 
 ## Project Overview
-A 50-60 player shared-screen multiplayer battle royale game where players use mobile phones as controllers.
+**Mask Royale** - A 40-player shared-screen multiplayer battle royale game where players use mobile phones as controllers.
 
 **Critical Context**: This is a 48-hour game jam project. Prioritize MVP features.
 

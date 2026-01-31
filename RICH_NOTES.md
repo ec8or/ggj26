@@ -6,7 +6,7 @@ Thanks for jumping in to save the day! Here's what you need to know:
 
 ## What We're Building
 
-**Crowd Control** - 40-player battle royale where the audience ARE the players.
+**Mask Royale** - 40-player battle royale where the audience ARE the players.
 
 **Format**: 5-minute presentation
 - 1 min intro/rules
