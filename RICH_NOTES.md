@@ -145,6 +145,20 @@ You can edit this array in Inspector to change the flow.
 
 ## To-Do List
 
+### **General** - Core Features Needed
+
+#### Title/Instruction Screens
+- **Show before each round type** (Snap, Sprint, Reaction, Advanced Snap)
+- Display round name + brief instructions
+- Examples:
+  - "SNAP! - Tap when you see your mask"
+  - "SPRINT! - Tap 100 times in 10 seconds"
+  - "REACTION! - Wait for GO signal, then tap fast!"
+  - "CHAOS! - Everyone gets a new mask!"
+  - "ADVANCED SNAP! - More masks = harder to spot yours"
+- **Press SPACE to advance** from instruction screen to actual round
+- Keeps presentation on rails, gives host control of pacing
+
 ### **Nils** - Phone UI & Juice
 - Mobile web client polish
 - Haptic feedback improvements
