@@ -271,4 +271,78 @@ public class MaskManager : MonoBehaviour
         }
         return ids;
     }
+
+    // ===== PASS/FAIL OVERLAY SYSTEM =====
+
+    // Show tick overlay on a specific mask (survived/passed)
+    public void ShowTickOverlay(int maskId, float duration = 2.5f)
+    {
+        if (!maskIdToDisplay.ContainsKey(maskId)) return;
+
+        GameObject maskObj = maskIdToDisplay[maskId];
+        Transform tickOverlay = maskObj.transform.Find("TickOverlay");
+
+        if (tickOverlay != null)
+        {
+            tickOverlay.gameObject.SetActive(true);
+            StartCoroutine(HideOverlayAfterDelay(tickOverlay.gameObject, duration));
+        }
+        else
+        {
+            Debug.LogWarning($"⚠️ TickOverlay not found on mask {maskId}");
+        }
+    }
+
+    // Show cross overlay on a specific mask (eliminated/failed)
+    public void ShowCrossOverlay(int maskId, float duration = 2.5f)
+    {
+        if (!maskIdToDisplay.ContainsKey(maskId)) return;
+
+        GameObject maskObj = maskIdToDisplay[maskId];
+        Transform crossOverlay = maskObj.transform.Find("CrossOverlay");
+
+        if (crossOverlay != null)
+        {
+            crossOverlay.gameObject.SetActive(true);
+            StartCoroutine(HideOverlayAfterDelay(crossOverlay.gameObject, duration));
+        }
+        else
+        {
+            Debug.LogWarning($"⚠️ CrossOverlay not found on mask {maskId}");
+        }
+    }
+
+    // Hide overlay after duration
+    private System.Collections.IEnumerator HideOverlayAfterDelay(GameObject overlay, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (overlay != null)
+        {
+            overlay.SetActive(false);
+        }
+    }
+
+    // Show all ticks (for showing survivors)
+    public void ShowTickOnAllDisplayedMasks(float duration = 2.5f)
+    {
+        foreach (var kvp in maskIdToDisplay)
+        {
+            ShowTickOverlay(kvp.Key, duration);
+        }
+    }
+
+    // Clear all overlays immediately
+    public void ClearAllOverlays()
+    {
+        foreach (var kvp in maskIdToDisplay)
+        {
+            GameObject maskObj = kvp.Value;
+
+            Transform tickOverlay = maskObj.transform.Find("TickOverlay");
+            if (tickOverlay != null) tickOverlay.gameObject.SetActive(false);
+
+            Transform crossOverlay = maskObj.transform.Find("CrossOverlay");
+            if (crossOverlay != null) crossOverlay.gameObject.SetActive(false);
+        }
+    }
 }
