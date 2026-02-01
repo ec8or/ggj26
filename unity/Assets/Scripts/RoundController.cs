@@ -83,7 +83,7 @@ public class RoundController : MonoBehaviour
         // Update UI with snap counter
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundInfo($"SNAP {currentSnap}/{totalSnaps}", "", 2f);
+            //UIManager.Instance.ShowRoundInfo($"SNAP {currentSnap}/{totalSnaps}", "", 2f);
         }
 
         Debug.Log($"🎭 Snap {currentSnap}/{totalSnaps} active! Masks shown: {string.Join(", ", currentActiveMasks.Select(m => $"#{m}"))}");
