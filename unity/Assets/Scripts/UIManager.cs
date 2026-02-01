@@ -516,6 +516,8 @@ public class UIManager : MonoBehaviour
     {
         if (winnerPanel != null)
         {
+            GameManager.Instance.PlaySuccessSound();
+            
             winnerPanel.SetActive(true);
 
             if (maskId < 0)

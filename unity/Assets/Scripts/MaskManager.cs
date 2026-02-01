@@ -284,6 +284,8 @@ public class MaskManager : MonoBehaviour
 
         if (tickOverlay != null)
         {
+            GameManager.Instance.PlaySuccessSound();
+            
             tickOverlay.gameObject.SetActive(true);
             StartCoroutine(HideOverlayAfterDelay(tickOverlay.gameObject, duration));
         }

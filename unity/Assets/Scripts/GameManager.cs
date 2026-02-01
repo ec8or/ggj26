@@ -37,6 +37,11 @@ public class GameManager : MonoBehaviour
         RoundType.Reaction,  // Round 16
         // Repeats after this...
     };
+    
+    [SerializeField] AudioSource audioSource;
+    [SerializeField] AudioClip eliminationSound;
+    [SerializeField] AudioClip succeedSound;
+    [SerializeField] AudioClip winSound;
 
     private RoundController roundController;
     private SprintRound sprintRound;
@@ -300,5 +305,18 @@ public class GameManager : MonoBehaviour
         }
         
         CurrentState = GameState.RoundOver;
+    }
+
+    public void PlayEliminationSound()
+    {
+        if(eliminationSound != null) audioSource.PlayOneShot(eliminationSound);
+    }
+    public void PlaySuccessSound()
+    {
+        if(succeedSound != null) audioSource.PlayOneShot(succeedSound);
+    }
+    public void PlayWin()
+    {
+        if(winSound != null) audioSource.PlayOneShot(winSound);
     }
 }

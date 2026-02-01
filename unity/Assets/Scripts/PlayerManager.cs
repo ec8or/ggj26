@@ -122,6 +122,8 @@ void Awake()
             return;
         }
 
+        GameManager.Instance.PlayEliminationSound();
+
         numPlayersEliminatedThisRound++;
 
         players[playerId].IsAlive = false;
