@@ -4,7 +4,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    public enum GameState { Lobby, Playing, GameOver }
+    public enum GameState { Lobby, RoundIntro, Playing, GameOver }
     public GameState CurrentState { get; private set; } = GameState.Lobby;
 
     public enum RoundType { Snap, Sprint, Reaction, Precision, Advanced }
@@ -61,11 +61,20 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // Host starts game with SPACE
-        if (CurrentState == GameState.Lobby && Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            StartGame();
+            if (CurrentState == GameState.Lobby)
+            {
+                StartGame();
+            }else if (CurrentState == GameState.Playing)
+            {
+                EndRound();
+            }
+        }else if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+        {
+            NextRound(RoundType.Snap);
         }
+
 
         // Debug: Skip to next round with N key
         if (Input.GetKeyDown(KeyCode.N) && CurrentState != GameState.Lobby)
@@ -99,6 +108,14 @@ public class GameManager : MonoBehaviour
 
     public void NextRound()
     {
+        // Get round type from sequence (loop if we exceed array length)
+        int sequenceIndex = CurrentRound % roundSequence.Length;
+        var nextRoundType = roundSequence[sequenceIndex];
+        
+        NextRound(nextRoundType);
+    }
+    public void NextRound(RoundType nextRoundType)
+    {
         int aliveCount = PlayerManager.Instance.GetAliveCount();
 
         // Check for game over
@@ -109,11 +126,8 @@ public class GameManager : MonoBehaviour
         }
 
         CurrentRound++;
-
-        // Get round type from sequence (loop if we exceed array length)
-        int sequenceIndex = (CurrentRound - 1) % roundSequence.Length;
-        currentRoundType = roundSequence[sequenceIndex];
-
+        currentRoundType = nextRoundType;
+        
         Debug.Log($"\n🎯 === ROUND {CurrentRound} ({currentRoundType}) ===");
 
         // Start the appropriate round type
@@ -154,6 +168,11 @@ public class GameManager : MonoBehaviour
 
         // Update UI and send state to clients
         BroadcastGameState();
+    }
+
+    void EndRound()
+    {
+        
     }
 
     void EndGame()

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,8 @@ public class PlayerManager : MonoBehaviour
 
     private Dictionary<string, Player> players = new Dictionary<string, Player>();
     private HashSet<int> usedMaskIds = new HashSet<int>();
+
+    public int maxPlayerCount;
 
     void Awake()
     {
@@ -53,7 +56,8 @@ public class PlayerManager : MonoBehaviour
         {
             Id = playerId,
             MaskId = maskId,
-            IsAlive = true
+            IsAlive = true,
+            JoinTime = DateTime.UtcNow.Ticks
         };
 
         players[playerId] = player;
@@ -122,6 +126,15 @@ public class PlayerManager : MonoBehaviour
         return players.Values.Where(p => p.IsAlive).ToList();
     }
 
+    public List<Player> GetAllPlayers()
+    {
+        var allPlayers = players.Values.ToList();
+
+        allPlayers.Sort((player1, player2) => player1.JoinTime.CompareTo(player2.JoinTime));
+        
+        return allPlayers;
+    }
+
     public Player GetPlayer(string playerId)
     {
         return players.ContainsKey(playerId) ? players[playerId] : null;
@@ -152,4 +165,5 @@ public class Player
     public bool IsAlive;
     public int TapCount; // For sprint bonus
     public long LastTapTime; // For reaction bonus
+    public long JoinTime; // For reaction bonus
 }
