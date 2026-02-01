@@ -7,7 +7,7 @@ public class GameManager : MonoBehaviour
     public enum GameState { Lobby, Playing, GameOver }
     public GameState CurrentState { get; private set; } = GameState.Lobby;
 
-    public enum RoundType { Snap, Sprint, Reaction, Precision, Advanced }
+    public enum RoundType { Snap, Sprint, Reaction, Precision, Advanced, Chaos }
 
     public int CurrentRound { get; private set; } = 0;
     private RoundType currentRoundType = RoundType.Snap;
@@ -23,17 +23,18 @@ public class GameManager : MonoBehaviour
         RoundType.Snap,      // Round 2
         RoundType.Sprint,    // Round 3
         RoundType.Snap,      // Round 4
-        RoundType.Advanced,  // Round 5 - Hard mode!
-        RoundType.Reaction,  // Round 6
-        RoundType.Snap,      // Round 7
+        RoundType.Chaos,     // Round 5 - Randomize all masks!
+        RoundType.Advanced,  // Round 6 - Hard mode!
+        RoundType.Reaction,  // Round 7
         RoundType.Snap,      // Round 8
-        RoundType.Precision, // Round 9
-        RoundType.Snap,      // Round 10
-        RoundType.Advanced,  // Round 11 - Hard mode again!
-        RoundType.Sprint,    // Round 12
-        RoundType.Snap,      // Round 13
+        RoundType.Snap,      // Round 9
+        RoundType.Precision, // Round 10
+        RoundType.Snap,      // Round 11
+        RoundType.Advanced,  // Round 12 - Hard mode again!
+        RoundType.Sprint,    // Round 13
         RoundType.Snap,      // Round 14
-        RoundType.Reaction,  // Round 15
+        RoundType.Snap,      // Round 15
+        RoundType.Reaction,  // Round 16
         // Repeats after this...
     };
 
@@ -42,6 +43,7 @@ public class GameManager : MonoBehaviour
     private ReactionRound reactionRound;
     private PrecisionRound precisionRound;
     private AdvancedRound advancedRound;
+    private ChaosRound chaosRound;
 
     void Awake()
     {
@@ -57,6 +59,7 @@ public class GameManager : MonoBehaviour
         reactionRound = GetComponent<ReactionRound>();
         precisionRound = GetComponent<PrecisionRound>();
         advancedRound = GetComponent<AdvancedRound>();
+        chaosRound = GetComponent<ChaosRound>();
     }
 
     void Update()
@@ -72,6 +75,20 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("⏭️ Skipping to next round (debug)");
             NextRound();
+        }
+
+        // Debug: Press 'C' key to manually trigger chaos for testing
+        if (Input.GetKeyDown(KeyCode.C) && CurrentState != GameState.Lobby)
+        {
+            Debug.Log("🃏 Manual Chaos Round triggered");
+            if (chaosRound != null)
+            {
+                chaosRound.StartChaosRound();
+            }
+            else
+            {
+                Debug.LogError("❌ ChaosRound component is missing! Add it to GameManager GameObject.");
+            }
         }
     }
 
@@ -149,6 +166,20 @@ public class GameManager : MonoBehaviour
                 CurrentState = GameState.Playing;
                 Debug.Log("💀 Advanced Round!");
                 if (advancedRound != null) advancedRound.StartAdvancedRound();
+                break;
+
+            case RoundType.Chaos:
+                CurrentState = GameState.Playing;
+                Debug.Log("🃏 Chaos Round!");
+                if (chaosRound != null)
+                {
+                    chaosRound.StartChaosRound();
+                }
+                else
+                {
+                    Debug.LogError("❌ ChaosRound component is missing! Add it to GameManager GameObject.");
+                    OnRoundComplete(); // Skip to next round
+                }
                 break;
         }
 

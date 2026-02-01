@@ -142,6 +142,24 @@ public class PlayerManager : MonoBehaviour
             player.TapCount = 0;
         }
     }
+
+    public void RandomizeAllMasks()
+    {
+        var alivePlayers = GetAlivePlayers();
+        var availableMasks = MaskManager.Instance.GetAvailableMaskIds();
+
+        foreach (var player in alivePlayers)
+        {
+            // Assign random mask (can be same as before or different)
+            int newMaskId = availableMasks[UnityEngine.Random.Range(0, availableMasks.Count)];
+            player.MaskId = newMaskId;
+
+            Debug.Log($"🔀 Player {player.Id} reassigned to Mask #{newMaskId}");
+
+            // Send new mask to mobile client
+            NetworkManager.Instance.EmitMaskAssigned(player.Id, newMaskId);
+        }
+    }
 }
 
 [System.Serializable]

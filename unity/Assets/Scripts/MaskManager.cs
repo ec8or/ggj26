@@ -213,4 +213,14 @@ public class MaskManager : MonoBehaviour
     {
         return activeMaskDisplays;
     }
+
+    public List<int> GetAvailableMaskIds()
+    {
+        List<int> ids = new List<int>();
+        for (int i = 1; i <= maskSprites.Count; i++)
+        {
+            ids.Add(i);
+        }
+        return ids;
+    }
 }
