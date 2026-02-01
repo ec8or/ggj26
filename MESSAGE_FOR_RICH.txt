@@ -1,0 +1,24 @@
+Morning Rich! 🎮
+
+You're the Unity saviour - 5.5 hours to make this LEGENDARY! Game is fully functional, now we're adding the juice and clarity that'll blow everyone away on the big screen.
+
+🎯 YOU CAN START NOW (no blockers):
+✅ Layout/Scene org - Use those notes (Grid for Snap, crowd overlap for Sprint, scattered for Reaction/Timing)
+✅ Title screens - Show round name + instructions before each round type ("SNAP ROUND - Tap when you see your mask!")
+✅ Final Round - Last ~5 players, reaction showdown, crown the winner
+✅ Chaos Card - Randomize everyone's masks before Advanced Snap (drama!)
+
+🔧 Test with: `node test-bot.js 40 http://localhost:3000 5` (in /server)
+   40 bots, 5 taps/sec - perfect for layout testing!
+
+⏳ WAITING ON DISA (she's making these now):
+🚦 Stop lights for Timing Round (red/yellow/green - you'll wire these into PrecisionRound.cs)
+✅❌ Pass/Fail overlays (green tick, red X - show on masks after each round)
+
+Once she delivers, drop them in Resources and wire them up. Then we playtest the HELL out of it with 40 bots and tune the balance.
+
+The core game works. Now make it FEEL incredible. Animations, polish, that Unity magic only you can do.
+
+Let's goooooo! 🚀👑
+
+— Nils & Claude (PM) 🤖

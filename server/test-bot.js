@@ -107,34 +107,36 @@ class Bot {
     }
   }
 
-  // SNAP/ADVANCED: Aggressive tapping to simulate active players
+  // SNAP/ADVANCED: Multiple taps throughout the round (5 snaps)
   snapBehavior() {
-    const checkAndTap = () => {
-      if (!this.roundActive || !this.isAlive) return;
+    // Snap rounds have ~5 snaps, each lasting ~5s with 1.5s between
+    // Total round time: ~35 seconds
+    // Schedule 3-5 tap attempts spread throughout the round
 
-      const rand = Math.random();
+    const numSnapAttempts = 3 + Math.floor(Math.random() * 3); // 3-5 attempts
+    const roundDuration = 35000; // ~35 seconds total
+    const intervalBetweenSnaps = roundDuration / numSnapAttempts;
 
-      if (rand < 0.70) {
-        // 70% chance to tap (simulating "your mask is shown and you tap")
-        const delay = Math.random() * 3000; // Random delay 0-3s
-        this.behaviorTimeout = setTimeout(() => {
-          if (this.roundActive && this.isAlive) {
-            this.tap();
-          }
-        }, delay);
-      } else if (rand < 0.80) {
-        // 10% chance to tap (wrong tap - mask not shown but you tap anyway)
-        const delay = Math.random() * 3000;
-        this.behaviorTimeout = setTimeout(() => {
-          if (this.roundActive && this.isAlive) {
-            this.tap();
-          }
-        }, delay);
-      }
-      // Else: 20% don't tap (simulating mask not shown OR player missed it)
-    };
+    for (let i = 0; i < numSnapAttempts; i++) {
+      const baseDelay = i * intervalBetweenSnaps;
+      const randomOffset = Math.random() * 3000; // Add 0-3s randomness
+      const totalDelay = baseDelay + randomOffset;
 
-    checkAndTap();
+      setTimeout(() => {
+        if (!this.roundActive || !this.isAlive) return;
+
+        const rand = Math.random();
+
+        if (rand < 0.70) {
+          // 70% chance to tap correctly
+          this.tap();
+        } else if (rand < 0.80) {
+          // 10% chance to tap wrongly
+          this.tap();
+        }
+        // 20% chance to skip this snap
+      }, totalDelay);
+    }
   }
 
   // SPRINT: Continuous tapping at specified rate

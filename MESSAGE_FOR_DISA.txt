@@ -1,0 +1,21 @@
+Good morning Disa! ☀️
+
+FINAL DAY - 5.5 hours until 4pm! The game is WORKING and looking amazing. Rich is at dBs crushing Unity layout, Nils has the test bots running perfectly. Now we need your magic to bring it to life! 🎨✨
+
+🚨 CRITICAL PRIORITY (do this first!):
+🚦 STOP LIGHTS - Red/Yellow/Green traffic lights (512x512px each)
+   Without these, the Timing Round doesn't make sense to players!
+   Just simple, clear circles - red, yellow, green
+
+Then if you have time:
+✅ Pass/Fail overlays - Green checkmark + Red X (for feedback on who's safe/eliminated)
+🎭 More masks - Get us to 20 total if possible
+🎨 Background - 1920x1080 main screen background (lowest priority)
+
+Save everything to: /unity/Assets/Resources/
+
+We've got this! The core game is solid, your art is going to make it SHINE on that big screen. Rich is ready to drop your assets in as soon as they land.
+
+Let's make Mask Royale unforgettable! 👑🎭
+
+— Nils, Rich & Claude (your PM for the day!) 🤖
