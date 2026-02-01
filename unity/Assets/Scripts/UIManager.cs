@@ -238,7 +238,7 @@ public class UIManager : MonoBehaviour
     }
 
     // Round Title
-    public void ShowRoundInfo(string title, string message, float autoTimeout = -1f)
+    public void ShowRoundInfo(string title, string message, float autoTimeout = 5f)
     {
         Debug.Log($"ShowRoundInfo - title: {title}, autoTimeout: {autoTimeout}");
         
