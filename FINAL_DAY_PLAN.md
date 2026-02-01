@@ -93,19 +93,22 @@ When round evaluates:
 
 ---
 
-### 3. Timing Round Polish (MEDIUM PRIORITY)
+### 3. Stop Lights UI for Timing Round (HIGH PRIORITY) 🚦
 
-**Current state**: Works, but needs visual cues.
+**Current state**: Works, but players don't know when to start counting!
 
-**Add**:
-- 🔴 **RED light** (0-2 seconds) - "WAIT"
+**CRITICAL - Must Add**:
+- 🔴 **RED light** (0-2 seconds) - "WAIT" / "DON'T TAP YET"
 - 🟡 **YELLOW light** (2-4 seconds) - "GET READY"
-- 🟢 **GREEN light** (at 5 seconds) - "TAP NOW!"
-- Show timer counting up: "0.5s... 1.2s... 3.8s..."
+- 🟢 **GREEN light** (at 5 seconds) - "TAP NOW!" / "GO"
+- Show timer counting up: "0.5s... 1.2s... 3.8s..." (so players can time it)
 - Show pass/fail after: "You tapped at 4.8s - TOO EARLY! ❌" or "5.1s - CLOSE! ✅"
 
-**Assets needed**:
-- Traffic light sprites (red/yellow/green circles)
+**Why critical**: Without visual cues, players have no idea when to start counting. The round doesn't make sense without this!
+
+**Assets needed from Disa** (PRIORITY):
+- Traffic light sprites (red/yellow/green circles) - LARGE and clear
+- Optional: "WAIT" / "GET READY" / "GO!" text overlays
 
 ---
 
@@ -132,14 +135,22 @@ Unity console shows: "40 players connected"
 
 ## 🎨 Assets from Disa
 
-### Must Have:
-1. **10 more masks** (gets us to 20 total) - 1 hour
-2. **Pass/Fail overlays**:
+### Must Have (PRIORITY ORDER):
+1. **🚦 STOP LIGHTS for Timing Round** (CRITICAL!)
+   - Red light (WAIT)
+   - Yellow light (GET READY)
+   - Green light (GO/TAP NOW)
+   - Make them LARGE and clear
+   - Without these, Timing round doesn't work!
+
+2. **✅❌ Pass/Fail overlays**:
    - Green tick/checkmark
    - Red X/cross
    - Optional: Skull for death
-3. **Main background** for Unity screen
-4. **Traffic lights** for Timing round (red/yellow/green)
+
+3. **10 more masks** (gets us to 20 total)
+
+4. **Main background** for Unity screen
 
 ### Nice to Have:
 5. UI boxes/frames for title screens
@@ -224,15 +235,26 @@ Unity console shows: "40 players connected"
 
 ### **Disa (Morning - 1 hour)**
 
-- [ ] **10 more masks** (priority #1)
-- [ ] Green tick/checkmark overlay
-- [ ] Red X/cross overlay
-- [ ] Main background for Unity screen
-- [ ] Traffic light sprites (red/yellow/green)
+**PRIORITY ORDER:**
+
+1. [ ] 🚦 **STOP LIGHTS** (CRITICAL - do this first!)
+   - Red, Yellow, Green traffic lights
+   - Large and clear (512x512px each)
+   - Without these, Timing round is broken!
+
+2. [ ] **Pass/Fail overlays**
+   - Green tick/checkmark overlay
+   - Red X/cross overlay
+
+3. [ ] **10 more masks** (as many as you can in remaining time)
+
+4. [ ] **Main background** for Unity screen (if time)
 
 **File format**: PNG, transparent background, 512x512px
-**Naming**: `mask_10.png` to `mask_19.png`
-**Delivery**: Drop in `/unity/Assets/Resources/Masks/`
+**Naming**:
+- Lights: `light_red.png`, `light_yellow.png`, `light_green.png`
+- Masks: `mask_10.png` to `mask_19.png`
+**Delivery**: Drop in `/unity/Assets/Resources/`
 
 ---
 
