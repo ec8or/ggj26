@@ -38,6 +38,8 @@ public class PlayerManager : MonoBehaviour
 
     void AddPlayer(string playerId)
     {
+        if (GameManager.Instance.CurrentState != GameManager.GameState.Lobby) return;
+        
         if (players.ContainsKey(playerId))
         {
             Debug.LogWarning($"Player {playerId} already exists!");
