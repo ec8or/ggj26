@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: SNAP
+  m_text: SNAP ROUND
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 68d5af5e0bab247188f833eeecbb7764, type: 2}
   m_sharedMaterial: {fileID: 8204877966934365917, guid: 68d5af5e0bab247188f833eeecbb7764, type: 2}
@@ -104,7 +104,7 @@ MonoBehaviour:
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
-  m_lineSpacing: 0
+  m_lineSpacing: -20
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0

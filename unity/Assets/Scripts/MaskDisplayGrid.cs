@@ -51,7 +51,7 @@ public class MaskDisplayGrid : MonoBehaviour
                 mainImg.color = color;
             }
             
-            mainImg.color = player.IsAlive ? Color.white : Color.white * 0.2f;
+            mainImg.color = player.IsAlive ? Color.white : Color.white * 0.3f;
         }
     }
     

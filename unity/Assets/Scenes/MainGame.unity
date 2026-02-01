@@ -2793,6 +2793,7 @@ MonoBehaviour:
   minRedLightTime: 2
   maxRedLightTime: 5
   greenLightDuration: 2
+  maxCycles: 5
 --- !u!114 &1881065595
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3401,7 +3402,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5695336990580613046, guid: 236a5a0ac21d93f4fb07cfeb05cf7184, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 400
+      value: 500
       objectReference: {fileID: 0}
     - target: {fileID: 5695336990580613046, guid: 236a5a0ac21d93f4fb07cfeb05cf7184, type: 3}
       propertyPath: m_LocalPosition.x
