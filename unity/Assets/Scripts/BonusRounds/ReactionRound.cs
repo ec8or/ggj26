@@ -31,10 +31,11 @@ public class ReactionRound : MonoBehaviour
 
         Debug.Log("⚡ FINAL ROUND: Reaction Round - Red Light Green Light!");
 
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ShowRoundInfo("FINAL ROUND", "RED LIGHT GREEN LIGHT");
-        }
+        // Disabled title cards for now - stoplight indicators are enough
+        // if (UIManager.Instance != null)
+        // {
+        //     UIManager.Instance.ShowRoundInfo("FINAL ROUND", "RED LIGHT GREEN LIGHT");
+        // }
 
         // Display ALL remaining masks on screen
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
@@ -74,7 +75,7 @@ public class ReactionRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundInfo("RED LIGHT", "DON'T TAP!");
+            // UIManager.Instance.ShowRoundInfo("RED LIGHT", "DON'T TAP!");
             UIManager.Instance.ShowRedIndicator();
         }
 
@@ -94,7 +95,7 @@ public class ReactionRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundInfo("GREEN LIGHT", "GO!!!");
+            // UIManager.Instance.ShowRoundInfo("GREEN LIGHT", "GO!!!");
             UIManager.Instance.ShowGreenIndicator();
             UIManager.Instance.ShowVisualTimer();
         }
