@@ -67,6 +67,7 @@ public class UIManager : MonoBehaviour
         HideWinner();
         HideRoundTitle();
         HideReactionIndicators();
+        HideVisualTimer(); // Hide timer during lobby
 
         CreateLobbyMasks();
 

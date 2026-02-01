@@ -48,6 +48,7 @@ public class SprintRound : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ShowRoundInfo($"SPRINT ROUND", $"Tap {requiredTaps}x in {roundDuration}s!");
+            UIManager.Instance.ShowVisualTimer();
         }
     }
 
@@ -166,6 +167,7 @@ public class SprintRound : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateRoundTimer(timer);
+            UIManager.Instance.UpdateVisualTimer(timer, roundDuration);
         }
 
         // Smooth tween all racers towards their target positions
@@ -239,6 +241,7 @@ public class SprintRound : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.HideRoundTitle();
+            UIManager.Instance.HideVisualTimer();
         }
 
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
