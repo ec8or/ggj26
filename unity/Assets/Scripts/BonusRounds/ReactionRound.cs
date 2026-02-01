@@ -128,6 +128,13 @@ public class ReactionRound : MonoBehaviour
             // Tapped during RED - eliminate immediately!
             Debug.Log($"❌ Player {tapData.PlayerId} (Mask #{player.MaskId}) tapped during RED - ELIMINATED!");
             eliminatedDuringRed.Add(tapData.PlayerId);
+
+            // Show cross overlay before eliminating
+            if (MaskManager.Instance != null)
+            {
+                MaskManager.Instance.ShowCrossOverlay(player.MaskId, 2.0f);
+            }
+
             PlayerManager.Instance.EliminatePlayer(tapData.PlayerId, "too_early");
 
             // Remove their mask from display immediately with animation
@@ -192,6 +199,13 @@ public class ReactionRound : MonoBehaviour
             if (player != null && player.IsAlive)
             {
                 Debug.Log($"💀 Eliminating slowest: Mask #{player.MaskId} ({(slowestTime >= 0 ? slowestTime + "ms" : "didn't tap")})");
+
+                // Show cross overlay before eliminating
+                if (MaskManager.Instance != null)
+                {
+                    MaskManager.Instance.ShowCrossOverlay(player.MaskId, 2.5f);
+                }
+
                 PlayerManager.Instance.EliminatePlayer(slowestPlayerId, "too_slow");
 
                 // Animate mask removal
