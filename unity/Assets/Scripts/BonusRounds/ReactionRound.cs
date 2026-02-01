@@ -146,6 +146,51 @@ public class ReactionRound : MonoBehaviour
             playerReactionTimes[tapData.PlayerId] = reactionTime;
 
             Debug.Log($"✓ Player {tapData.PlayerId} (Mask #{player.MaskId}) reaction: {reactionTime}ms");
+
+            // Show tick immediately!
+            if (MaskManager.Instance != null)
+            {
+                MaskManager.Instance.ShowTickOverlay(player.MaskId, 999f);
+            }
+
+            // Check if this player was the second-to-last to tap
+            CheckForLastPlayer();
+        }
+    }
+
+    void CheckForLastPlayer()
+    {
+        var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
+
+        // Count how many players are eligible (didn't tap during red)
+        int eligibleCount = 0;
+        foreach (var player in alivePlayers)
+        {
+            if (!tappedDuringRed.Contains(player.Id))
+            {
+                eligibleCount++;
+            }
+        }
+
+        // If all but one have tapped, mark the last one
+        if (playerReactionTimes.Count == eligibleCount - 1)
+        {
+            // Find the player who hasn't tapped yet
+            foreach (var player in alivePlayers)
+            {
+                if (!tappedDuringRed.Contains(player.Id) && !playerReactionTimes.ContainsKey(player.Id))
+                {
+                    Debug.Log($"❌ Mask #{player.MaskId} is the LAST one - showing cross immediately!");
+
+                    if (MaskManager.Instance != null)
+                    {
+                        MaskManager.Instance.ShowCrossOverlay(player.MaskId, 999f);
+                    }
+
+                    markedForElimination.Add(player.Id);
+                    break;
+                }
+            }
         }
     }
 
@@ -187,32 +232,33 @@ public class ReactionRound : MonoBehaviour
             slowestTime = slowest.Value;
         }
 
-        // Apply overlays: slowest gets cross, everyone else gets tick
+        // Ensure slowest is marked for elimination (might already be marked from CheckForLastPlayer)
+        // Ticks are already showing from OnTapReceived
         foreach (var player in alivePlayers)
         {
-            if (MaskManager.Instance != null)
+            // People who tapped during red are already marked
+            if (tappedDuringRed.Contains(player.Id))
             {
-                // Skip people who already have crosses from red light (don't re-show)
-                if (tappedDuringRed.Contains(player.Id))
+                if (!markedForElimination.Contains(player.Id))
                 {
-                    Debug.Log($"❌ Mask #{player.MaskId} already has CROSS (tapped during red)");
+                    Debug.Log($"❌ Mask #{player.MaskId} marked for elimination (tapped during red)");
                     markedForElimination.Add(player.Id);
-                    continue;
+                }
+                continue;
+            }
+
+            // Mark slowest if not already marked
+            if (player.Id == slowestPlayerId && !markedForElimination.Contains(player.Id))
+            {
+                Debug.Log($"❌ Mask #{player.MaskId} marked for elimination (slowest/no tap)");
+
+                // Show cross if not already showing (CheckForLastPlayer might have shown it)
+                if (MaskManager.Instance != null)
+                {
+                    MaskManager.Instance.ShowCrossOverlay(player.MaskId, 999f);
                 }
 
-                if (player.Id == slowestPlayerId)
-                {
-                    // Slowest tapper or didn't tap = cross
-                    MaskManager.Instance.ShowCrossOverlay(player.MaskId, 999f);
-                    Debug.Log($"❌ Mask #{player.MaskId} gets CROSS (slowest/no tap)");
-                    markedForElimination.Add(player.Id);
-                }
-                else if (playerReactionTimes.ContainsKey(player.Id))
-                {
-                    // Tapped on green and not slowest = tick
-                    MaskManager.Instance.ShowTickOverlay(player.MaskId, 999f);
-                    Debug.Log($"✓ Mask #{player.MaskId} gets TICK");
-                }
+                markedForElimination.Add(player.Id);
             }
         }
 
