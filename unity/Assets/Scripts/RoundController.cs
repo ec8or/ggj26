@@ -126,16 +126,24 @@ public class RoundController : MonoBehaviour
 
         // Animate mask if it's a correct tap (only once per round)
         var player = PlayerManager.Instance.GetPlayer(tapData.PlayerId);
-        if (player != null && currentActiveMasks.Contains(player.MaskId))
+        if (player != null)
         {
-            // Correct tap! Animate the mask (only if not already animated)
-            if (!masksAlreadyAnimated.Contains(player.MaskId))
+            if (currentActiveMasks.Contains(player.MaskId))
             {
-                masksAlreadyAnimated.Add(player.MaskId);
-                if (MaskManager.Instance != null)
+                // Correct tap! Animate the mask (only if not already animated)
+                if (!masksAlreadyAnimated.Contains(player.MaskId))
                 {
-                    MaskManager.Instance.AnimateSafeTap(player.MaskId);
+                    masksAlreadyAnimated.Add(player.MaskId);
+                    if (MaskManager.Instance != null)
+                    {
+                        MaskManager.Instance.AnimateSafeTap(player.MaskId);
+                    }
                 }
+            }
+            else
+            {
+                //invalid tap
+                PlayerManager.Instance.EliminatePlayer(player.Id, "wrong_tap");
             }
         }
 
@@ -144,8 +152,18 @@ public class RoundController : MonoBehaviour
 
     void CheckEndSnapRound()
     {
-        if (playersWhoTapped.Count >= currentActiveMasks.Count - currentRoundEliminationCount)
+        Debug.Log($"CheckEndSnapRound - playersWhoTapped.Count: {playersWhoTapped.Count}, currentActiveMasks.Count: {currentActiveMasks.Count}, currentRoundEliminationCount: {currentRoundEliminationCount}");
+
+        var activePlayersLeft = currentActiveMasks.Count;
+        foreach (var currentActiveMask in currentActiveMasks)
         {
+            var player = PlayerManager.Instance.GetPlayerByMaskId(currentActiveMask);
+            if (playersWhoTapped.Contains(player.Id))
+            {
+                activePlayersLeft--;
+            }
+        }
+        if(activePlayersLeft <= currentRoundEliminationCount) {
             EndSnapRound();
         }
 
@@ -186,7 +204,6 @@ public class RoundController : MonoBehaviour
                 if (playerTapped)
                 {
                     // Wrong tap! Show cross and eliminate
-                    MaskManager.Instance.ShowCrossOverlay(player.MaskId, 2.0f);
                     PlayerManager.Instance.EliminatePlayer(player.Id, "wrong_tap");
                     eliminatedThisSnap++;
                 }
