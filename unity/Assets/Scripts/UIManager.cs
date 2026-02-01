@@ -106,6 +106,8 @@ public class UIManager : MonoBehaviour
         currentGameState = state;
 
         interRoundGridContainer.gameObject.SetActive(false);
+        ClearInterRoundMasks();
+        
         if (currentGameState == GameManager.GameState.RoundOver)
         {
             interRoundGridContainer.gameObject.SetActive(true);
@@ -417,11 +419,11 @@ public class UIManager : MonoBehaviour
     
     public void ClearInterRoundMasks()
     {
-        foreach (var kvp in interRoundMaskDisplays)
+        foreach (var maskDisplayGrid in interRoundMaskDisplays)
         {
-            if (kvp != null)
+            if (maskDisplayGrid != null)
             {
-                Destroy(kvp.gameObject);
+                Destroy(maskDisplayGrid.gameObject);
             }
         }
         interRoundMaskDisplays.Clear();
@@ -438,8 +440,6 @@ public class UIManager : MonoBehaviour
             
             interRoundMaskDisplays.Add(maskObj);
         }
-        
-        RefreshInterRoundMasks();
     }
 
     void RefreshInterRoundMasks()

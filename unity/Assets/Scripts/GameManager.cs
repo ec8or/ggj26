@@ -78,19 +78,41 @@ public class GameManager : MonoBehaviour
             }
         }else if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
         {
-            NextRound(RoundType.Snap);
+            if (CurrentState == GameState.Lobby || CurrentState == GameState.RoundOver)
+            {
+                NextRound(RoundType.Snap);
+            }
         }else if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
         {
-            NextRound(RoundType.Sprint);
+            if (CurrentState == GameState.Lobby || CurrentState == GameState.RoundOver)
+            {
+                NextRound(RoundType.Sprint);
+            }
         }else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
         {
-            NextRound(RoundType.Precision);
-        }else if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4))
+            if (CurrentState == GameState.Lobby || CurrentState == GameState.RoundOver)
+            {
+                NextRound(RoundType.Reaction);
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4))
         {
-            NextRound(RoundType.Advanced);
+            if (CurrentState == GameState.Lobby || CurrentState == GameState.RoundOver)
+            {
+                NextRound(RoundType.Precision);
+            }
         }else if (Input.GetKeyDown(KeyCode.Alpha5) || Input.GetKeyDown(KeyCode.Keypad5))
         {
-            NextRound(RoundType.Chaos);
+            if (CurrentState == GameState.Lobby || CurrentState == GameState.RoundOver)
+            {
+                NextRound(RoundType.Advanced);
+            }
+        }else if (Input.GetKeyDown(KeyCode.Alpha6) || Input.GetKeyDown(KeyCode.Keypad6))
+        {
+            if (CurrentState == GameState.Lobby || CurrentState == GameState.RoundOver)
+            {
+                NextRound(RoundType.Chaos);
+            }
         }
 
 
