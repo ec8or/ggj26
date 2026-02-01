@@ -6,6 +6,7 @@ public class SprintRound : MonoBehaviour
 {
     [SerializeField] private int requiredTaps = 40;
     [SerializeField] private float roundDuration = 10f;
+    [SerializeField] private float redLightDuration = 5f; // Countdown before race starts
     [SerializeField] private Transform sprintContainer; // Container for racing masks
     [SerializeField] private GameObject sprintMaskPrefab; // Small mask prefab for racing
 
@@ -15,6 +16,7 @@ public class SprintRound : MonoBehaviour
     private List<GameObject> activeRacers = new List<GameObject>();
     private float timer;
     private bool active = false;
+    private bool countdownPhase = false; // Red light countdown active
 
     private const float START_X = -740f; // 220px from left edge (1920/2 - 220)
     private const float END_X = 740f;    // 220px from right edge
@@ -31,7 +33,8 @@ public class SprintRound : MonoBehaviour
 
     public void StartSprintRound()
     {
-        active = true;
+        countdownPhase = true;
+        active = false; // Don't start race yet
         timer = roundDuration;
         playerTapCounts.Clear();
         maskIdToRacerObject.Clear();
@@ -40,7 +43,7 @@ public class SprintRound : MonoBehaviour
         // Reset tap counts in PlayerManager
         PlayerManager.Instance.ResetTapCounts();
 
-        Debug.Log($"🏃 Sprint Round: Tap {requiredTaps} times in {roundDuration} seconds!");
+        Debug.Log($"🏃 Sprint Round: Get ready! Red light for {redLightDuration}s...");
 
         // Display all alive players' masks at the bottom
         DisplayRacingMasks();
@@ -48,7 +51,24 @@ public class SprintRound : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ShowRoundInfo($"SPRINT ROUND", $"Tap {requiredTaps}x in {roundDuration}s!");
-            UIManager.Instance.ShowVisualTimer();
+            UIManager.Instance.ShowRedIndicator(); // Show red light
+        }
+
+        // Start race after countdown
+        Invoke(nameof(BeginRace), redLightDuration);
+    }
+
+    void BeginRace()
+    {
+        countdownPhase = false;
+        active = true;
+
+        Debug.Log($"🟢 GO! Sprint race started - Tap {requiredTaps} times in {roundDuration} seconds!");
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowGreenIndicator(); // Switch to green light
+            UIManager.Instance.ShowVisualTimer(); // Show timer when race starts
         }
     }
 
@@ -197,6 +217,9 @@ public class SprintRound : MonoBehaviour
 
     void OnTapReceived(TapData tapData)
     {
+        // Ignore taps during countdown phase (red light)
+        if (countdownPhase) return;
+
         if (!active) return;
 
         // SIMPLIFIED: Each tap event from mobile = 5 actual taps
@@ -237,11 +260,13 @@ public class SprintRound : MonoBehaviour
     void EvaluateSprintRound()
     {
         active = false;
+        countdownPhase = false;
 
         if (UIManager.Instance != null)
         {
             UIManager.Instance.HideRoundTitle();
             UIManager.Instance.HideVisualTimer();
+            UIManager.Instance.HideReactionIndicators(); // Hide red/green lights
         }
 
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
