@@ -116,7 +116,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void StartGame()
+    void StartGame(bool isAutoNextRound = true)
     {
         if (PlayerManager.Instance.GetTotalCount() < minPlayersToStart)
         {
@@ -135,7 +135,7 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.ClearLobbyMasks(); // Hide lobby masks when game starts
         }
 
-        NextRound();
+        if(isAutoNextRound) NextRound();
     }
 
     public void NextRound()
@@ -148,6 +148,11 @@ public class GameManager : MonoBehaviour
     }
     public void NextRound(RoundType nextRoundType)
     {
+        if (CurrentState == GameState.Lobby)
+        {
+            StartGame(false);
+        }
+        
         int aliveCount = PlayerManager.Instance.GetAliveCount();
 
         // Check for game over
