@@ -93,6 +93,7 @@ public class RoundController : MonoBehaviour
         if (UIManager.Instance != null)
         {
             //UIManager.Instance.ShowRoundInfo($"SNAP {currentSnap}/{totalSnaps}", "", 2f);
+            UIManager.Instance.ShowVisualTimer();
         }
 
         Debug.Log($"🎭 Snap {currentSnap}/{totalSnaps} active! Masks shown: {string.Join(", ", currentActiveMasks.Select(m => $"#{m}"))}");
@@ -107,6 +108,7 @@ public class RoundController : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateRoundTimer(roundTimer);
+            UIManager.Instance.UpdateVisualTimer(roundTimer, roundDuration);
         }
 
         if (roundTimer <= 0)
@@ -188,6 +190,7 @@ public class RoundController : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.HideRoundTitle();
+            UIManager.Instance.HideVisualTimer();
         }
 
         // Notify GameManager
