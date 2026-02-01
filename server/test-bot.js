@@ -2,11 +2,14 @@
  * Test Bot - Simulates multiple players for testing
  *
  * Usage:
+ *   npm run bots              (spawns 40 bots on localhost:3000)
  *   node test-bot.js [numBots] [serverUrl]
  *
  * Examples:
  *   node test-bot.js 10
  *   node test-bot.js 50 http://192.168.1.100:3000
+ *
+ * Press Ctrl+C to disconnect all bots
  */
 
 const io = require('socket.io-client');
