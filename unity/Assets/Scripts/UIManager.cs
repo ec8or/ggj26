@@ -318,11 +318,11 @@ public class UIManager : MonoBehaviour
 
     public void ClearLobbyMasks()
     {
-        foreach (var kvp in lobbyMaskDisplayPlayerDict)
+        foreach (var kvp in lobbyMaskDisplays)
         {
-            if (kvp.Value != null)
+            if (kvp != null)
             {
-                Destroy(kvp.Value);
+                Destroy(kvp.gameObject);
             }
         }
         lobbyMaskDisplayPlayerDict.Clear();
