@@ -41,10 +41,17 @@ void Awake()
     void AddPlayer(string playerId)
     {
         if (GameManager.Instance.CurrentState != GameManager.GameState.Lobby) return;
-        
+
         if (players.ContainsKey(playerId))
         {
             Debug.LogWarning($"Player {playerId} already exists!");
+            return;
+        }
+
+        // Limit to 40 players max
+        if (players.Count >= 40)
+        {
+            Debug.LogWarning($"⚠️ Game is full (40 players max). Player {playerId} rejected.");
             return;
         }
 
@@ -187,12 +194,22 @@ void Awake()
             return;
         }
 
+        // Shuffle the mask list to ensure unique assignment
+        for (int i = masksInPlay.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            int temp = masksInPlay[i];
+            masksInPlay[i] = masksInPlay[j];
+            masksInPlay[j] = temp;
+        }
+
         Debug.Log($"🎭 Randomizing from {masksInPlay.Count} masks currently in play");
 
-        foreach (var player in alivePlayers)
+        // Assign shuffled masks to players (ensures no duplicates)
+        for (int i = 0; i < alivePlayers.Count; i++)
         {
-            // Assign random mask from the pool of alive players' masks
-            int newMaskId = masksInPlay[UnityEngine.Random.Range(0, masksInPlay.Count)];
+            var player = alivePlayers[i];
+            int newMaskId = masksInPlay[i];
             player.MaskId = newMaskId;
 
             Debug.Log($"🔀 Player {player.Id} reassigned to Mask #{newMaskId}");

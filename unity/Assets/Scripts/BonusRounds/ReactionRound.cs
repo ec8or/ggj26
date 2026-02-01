@@ -155,8 +155,8 @@ public class ReactionRound : MonoBehaviour
 
             Debug.Log($"✓ Player {tapData.PlayerId} (Mask #{player.MaskId}) reaction: {reactionTime}ms");
 
-            // Show tick immediately (unless already marked with cross)
-            if (!markedForElimination.Contains(tapData.PlayerId))
+            // Show tick immediately (unless already has cross from red tap or marked for elimination)
+            if (!tappedDuringRed.Contains(tapData.PlayerId) && !markedForElimination.Contains(tapData.PlayerId))
             {
                 if (MaskManager.Instance != null)
                 {
