@@ -2,6 +2,8 @@
 
 Thanks for jumping in to save the day! Here's what you need to know:
 
+**🚨 FINAL DAY**: See `/FINAL_DAY_PLAN.md` for today's specific priorities and task breakdown!
+
 ---
 
 ## What We're Building

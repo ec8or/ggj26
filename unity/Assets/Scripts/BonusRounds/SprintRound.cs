@@ -11,13 +11,15 @@ public class SprintRound : MonoBehaviour
 
     private Dictionary<string, int> playerTapCounts = new Dictionary<string, int>();
     private Dictionary<int, GameObject> maskIdToRacerObject = new Dictionary<int, GameObject>(); // maskId -> racer GameObject
+    private Dictionary<int, float> maskIdToTargetX = new Dictionary<int, float>(); // For smooth tweening
     private List<GameObject> activeRacers = new List<GameObject>();
     private float timer;
     private bool active = false;
 
-    private const float START_Y = -400f; // Bottom of screen
-    private const float END_Y = 400f;    // Top of screen
+    private const float START_X = -740f; // 220px from left edge (1920/2 - 220)
+    private const float END_X = 740f;    // 220px from right edge
     private const float MASK_SIZE = 50f;  // Small size for racing
+    private const float TWEEN_SPEED = 10f; // Smooth movement speed
 
     void Start()
     {
@@ -33,6 +35,7 @@ public class SprintRound : MonoBehaviour
         timer = roundDuration;
         playerTapCounts.Clear();
         maskIdToRacerObject.Clear();
+        maskIdToTargetX.Clear();
 
         // Reset tap counts in PlayerManager
         PlayerManager.Instance.ResetTapCounts();
@@ -82,15 +85,16 @@ public class SprintRound : MonoBehaviour
             return;
         }
 
-        // Calculate layout (2 rows if more than 20 players)
-        bool useDoubleRow = playerCount > 20;
-        int masksPerRow = useDoubleRow ? Mathf.CeilToInt(playerCount / 2f) : playerCount;
+        // Calculate layout (arrange in vertical lanes)
+        // Use 2 columns if more than 20 players
+        bool useDoubleColumn = playerCount > 20;
+        int masksPerColumn = useDoubleColumn ? Mathf.CeilToInt(playerCount / 2f) : playerCount;
 
-        float spacing = 1920f / (masksPerRow + 1); // Screen width divided by masks
-        float rowOffset = useDoubleRow ? 60f : 0f; // Offset for second row
+        float verticalSpacing = 1080f / (masksPerColumn + 1); // Screen height divided by masks
+        float columnOffset = useDoubleColumn ? 100f : 0f; // Horizontal offset for second column
 
-        int currentRow = 0;
-        int currentCol = 0;
+        int currentColumn = 0;
+        int currentLane = 0;
 
         foreach (var player in alivePlayers)
         {
@@ -101,12 +105,15 @@ public class SprintRound : MonoBehaviour
 
             if (rt != null)
             {
-                // Position at bottom of screen
-                float xPos = (currentCol + 1) * spacing - (1920f / 2f);
-                float yPos = START_Y + (currentRow * rowOffset);
+                // Position at left side of screen, spread vertically
+                float xPos = START_X + (currentColumn * columnOffset);
+                float yPos = (currentLane + 1) * verticalSpacing - (1080f / 2f);
 
                 rt.anchoredPosition = new Vector2(xPos, yPos);
                 rt.sizeDelta = new Vector2(MASK_SIZE, MASK_SIZE);
+
+                // Initialize target position
+                maskIdToTargetX[player.MaskId] = xPos;
 
                 Debug.Log($"  Mask #{player.MaskId} positioned at ({xPos:F0}, {yPos:F0})");
             }
@@ -138,12 +145,12 @@ public class SprintRound : MonoBehaviour
             maskIdToRacerObject[player.MaskId] = racerObj;
             activeRacers.Add(racerObj);
 
-            // Move to next position
-            currentCol++;
-            if (useDoubleRow && currentCol >= masksPerRow)
+            // Move to next lane
+            currentLane++;
+            if (useDoubleColumn && currentLane >= masksPerColumn)
             {
-                currentCol = 0;
-                currentRow = 1;
+                currentLane = 0;
+                currentColumn = 1;
             }
         }
 
@@ -159,6 +166,25 @@ public class SprintRound : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateRoundTimer(timer);
+        }
+
+        // Smooth tween all racers towards their target positions
+        foreach (var kvp in maskIdToRacerObject)
+        {
+            int maskId = kvp.Key;
+            GameObject racerObj = kvp.Value;
+
+            if (racerObj != null && maskIdToTargetX.ContainsKey(maskId))
+            {
+                RectTransform rt = racerObj.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    float targetX = maskIdToTargetX[maskId];
+                    float currentX = rt.anchoredPosition.x;
+                    float newX = Mathf.Lerp(currentX, targetX, Time.deltaTime * TWEEN_SPEED);
+                    rt.anchoredPosition = new Vector2(newX, rt.anchoredPosition.y);
+                }
+            }
         }
 
         if (timer <= 0)
@@ -196,18 +222,14 @@ public class SprintRound : MonoBehaviour
     {
         if (!maskIdToRacerObject.ContainsKey(maskId)) return;
 
-        GameObject racerObj = maskIdToRacerObject[maskId];
-        RectTransform rt = racerObj.GetComponent<RectTransform>();
-        if (rt == null) return;
-
         // Calculate progress (0 to 1)
         float progress = Mathf.Clamp01((float)tapCount / requiredTaps);
 
-        // Interpolate Y position from bottom to top
-        float newY = Mathf.Lerp(START_Y, END_Y, progress);
+        // Calculate target X position (left to right)
+        float targetX = Mathf.Lerp(START_X, END_X, progress);
 
-        // Keep X the same, only update Y
-        rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, newY);
+        // Store target position for smooth tweening in Update()
+        maskIdToTargetX[maskId] = targetX;
     }
 
     void EvaluateSprintRound()
@@ -244,6 +266,7 @@ public class SprintRound : MonoBehaviour
         }
         activeRacers.Clear();
         maskIdToRacerObject.Clear();
+        maskIdToTargetX.Clear();
 
         // Notify GameManager
         if (GameManager.Instance != null)
