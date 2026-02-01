@@ -220,7 +220,7 @@ public class UIManager : MonoBehaviour
             var timeSinceSecondChange = Time.time - lastSecondChangeTime;
 
             var scale = Vector3.one * ((1f - timeSinceSecondChange) * 0.4f);
-            timerSecondsText.transform.localScale = scale;
+            //timerSecondsText.transform.localScale = scale;
             
         }
     }
