@@ -194,12 +194,22 @@ void Awake()
             return;
         }
 
+        // Shuffle the mask list to ensure unique assignment
+        for (int i = masksInPlay.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            int temp = masksInPlay[i];
+            masksInPlay[i] = masksInPlay[j];
+            masksInPlay[j] = temp;
+        }
+
         Debug.Log($"🎭 Randomizing from {masksInPlay.Count} masks currently in play");
 
-        foreach (var player in alivePlayers)
+        // Assign shuffled masks to players (ensures no duplicates)
+        for (int i = 0; i < alivePlayers.Count; i++)
         {
-            // Assign random mask from the pool of alive players' masks
-            int newMaskId = masksInPlay[UnityEngine.Random.Range(0, masksInPlay.Count)];
+            var player = alivePlayers[i];
+            int newMaskId = masksInPlay[i];
             player.MaskId = newMaskId;
 
             Debug.Log($"🔀 Player {player.Id} reassigned to Mask #{newMaskId}");
