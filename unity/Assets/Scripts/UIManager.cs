@@ -187,6 +187,8 @@ public class UIManager : MonoBehaviour
     }
 
     // Visual Timer (radial fill with color changes)
+    private int lastSecondDisplay;
+    private float lastSecondChangeTime;
     public void UpdateVisualTimer(float timeRemaining, float totalTime)
     {
         if (timerFillImage == null) return;
@@ -205,7 +207,21 @@ public class UIManager : MonoBehaviour
         // Optional: Show seconds inside timer
         if (timerSecondsText != null)
         {
-            timerSecondsText.text = Mathf.CeilToInt(timeRemaining).ToString();
+            var checkSecondsDisplay = Mathf.CeilToInt(timeRemaining);
+            if (checkSecondsDisplay != lastSecondDisplay)
+            {
+                lastSecondDisplay = checkSecondsDisplay;
+                
+                timerSecondsText.text = lastSecondDisplay.ToString();
+
+                lastSecondChangeTime = Time.time;
+            }
+            
+            var timeSinceSecondChange = Time.time - lastSecondChangeTime;
+
+            var scale = Vector3.one * ((1f - timeSinceSecondChange) * 0.4f);
+            timerSecondsText.transform.localScale = scale;
+            
         }
     }
 
