@@ -96,6 +96,7 @@ public class ReactionRound : MonoBehaviour
         {
             UIManager.Instance.ShowRoundInfo("GREEN LIGHT", "GO!!!");
             UIManager.Instance.ShowGreenIndicator();
+            UIManager.Instance.ShowVisualTimer();
         }
     }
 
@@ -108,6 +109,7 @@ public class ReactionRound : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateRoundTimer(timer);
+            UIManager.Instance.UpdateVisualTimer(timer, greenLightDuration);
         }
 
         if (timer <= 0)
@@ -156,6 +158,7 @@ public class ReactionRound : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.HideReactionIndicators();
+            UIManager.Instance.HideVisualTimer();
         }
 
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
