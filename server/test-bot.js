@@ -25,7 +25,7 @@ class Bot {
     this.socket = null;
     this.maskId = null;
     this.isAlive = true;
-    this.autoTap = true; // Auto-tap when mask appears
+    this.autoTap = false; // Disabled by default - just for UI testing
   }
 
   connect() {
@@ -83,29 +83,33 @@ class Bot {
   }
 }
 
-// Create and connect bots
-for (let i = 1; i <= NUM_BOTS; i++) {
-  const bot = new Bot(i);
-  bot.connect();
-  bots.push(bot);
+// Create and connect bots with staggered timing
+async function startBots() {
+  for (let i = 1; i <= NUM_BOTS; i++) {
+    const bot = new Bot(i);
+    bot.connect();
+    bots.push(bot);
 
-  // Stagger connections to avoid overwhelming server
-  if (i < NUM_BOTS) {
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Stagger connections to avoid overwhelming server
+    if (i < NUM_BOTS) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
   }
+
+  console.log(`\n✅ All ${NUM_BOTS} bots connected!`);
+  console.log('💡 Auto-tap is DISABLED (bots just sit there for UI testing)');
+  console.log('Press Ctrl+C to disconnect all bots\n');
 }
 
-// Keep process alive
+// Keep process alive and handle shutdown
 process.on('SIGINT', () => {
   console.log('\n🛑 Disconnecting all bots...');
   bots.forEach(bot => bot.disconnect());
-  process.exit(0);
+  setTimeout(() => {
+    console.log('✅ All bots disconnected');
+    process.exit(0);
+  }, 500);
 });
 
-console.log(`\n✅ All ${NUM_BOTS} bots connected!`);
-console.log('Press Ctrl+C to stop\n');
-
-// Helper to make the await work
-async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+// Start the bots
+startBots();
