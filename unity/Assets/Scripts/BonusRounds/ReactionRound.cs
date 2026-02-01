@@ -147,10 +147,17 @@ public class ReactionRound : MonoBehaviour
 
             Debug.Log($"✓ Player {tapData.PlayerId} (Mask #{player.MaskId}) reaction: {reactionTime}ms");
 
-            // Show tick immediately!
-            if (MaskManager.Instance != null)
+            // Show tick immediately (unless already marked with cross)
+            if (!markedForElimination.Contains(tapData.PlayerId))
             {
-                MaskManager.Instance.ShowTickOverlay(player.MaskId, 999f);
+                if (MaskManager.Instance != null)
+                {
+                    MaskManager.Instance.ShowTickOverlay(player.MaskId, 999f);
+                }
+            }
+            else
+            {
+                Debug.Log($"  Player already has CROSS - no tick for them!");
             }
 
             // Check if this player was the second-to-last to tap
