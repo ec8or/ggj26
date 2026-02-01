@@ -4,8 +4,8 @@ using UnityEngine.UI;
 
 public class SprintRound : MonoBehaviour
 {
-    [SerializeField] private int requiredTaps = 100;
-    [SerializeField] private float roundDuration = 30f;
+    [SerializeField] private int requiredTaps = 40;
+    [SerializeField] private float roundDuration = 10f;
     [SerializeField] private Transform sprintContainer; // Container for racing masks
     [SerializeField] private GameObject sprintMaskPrefab; // Small mask prefab for racing
 
