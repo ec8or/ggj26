@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class ChaosRound : MonoBehaviour
 {
     [Header("Chaos Settings")]
-    [SerializeField] private int numFlyingMasks = 60; // Number of masks to spawn
+    [SerializeField] private int targetFlyingMasks = 40; // Target total number of flying masks
     [SerializeField] private float maskSpeed = 300f; // Speed of flying masks
     [SerializeField] private float spinSpeed = 180f; // Rotation speed
 
@@ -97,6 +97,12 @@ public class ChaosRound : MonoBehaviour
             return;
         }
 
+        if (PlayerManager.Instance == null)
+        {
+            Debug.LogError("❌ PlayerManager not found - can't get alive masks!");
+            return;
+        }
+
         if (flyingMaskContainer == null)
         {
             Debug.LogWarning("⚠️ Flying mask container not assigned - spawning at root");
@@ -108,53 +114,74 @@ public class ChaosRound : MonoBehaviour
             return;
         }
 
+        // Get masks currently in play (from alive players only)
+        List<int> aliveMaskIds = PlayerManager.Instance.GetAliveMaskIds();
+        if (aliveMaskIds.Count == 0)
+        {
+            Debug.LogWarning("⚠️ No alive players - can't spawn masks!");
+            return;
+        }
+
+        // Calculate how many copies of each mask to spawn to reach ~40 total
+        int copiesPerMask = Mathf.Max(1, targetFlyingMasks / aliveMaskIds.Count);
+
+        Debug.Log($"🎭 Spawning {aliveMaskIds.Count} unique masks × {copiesPerMask} copies = {aliveMaskIds.Count * copiesPerMask} total flying masks");
+
         // Get screen bounds
         RectTransform canvasRect = flyingMaskContainer?.GetComponentInParent<Canvas>()?.GetComponent<RectTransform>();
         float screenWidth = canvasRect != null ? canvasRect.rect.width : 1920f;
         float screenHeight = canvasRect != null ? canvasRect.rect.height : 1080f;
 
-        // Spawn masks with random positions and velocities
-        for (int i = 1; i <= numFlyingMasks; i++)
+        // Spawn multiple copies of each alive player's mask
+        foreach (int maskId in aliveMaskIds)
         {
-            Sprite maskSprite = MaskManager.Instance.GetMaskSprite(i);
-            if (maskSprite == null) continue;
-
-            GameObject maskObj = Instantiate(maskPrefab, flyingMaskContainer);
-            Image img = maskObj.GetComponent<Image>();
-            if (img != null)
+            Sprite maskSprite = MaskManager.Instance.GetMaskSprite(maskId);
+            if (maskSprite == null)
             {
-                img.sprite = maskSprite;
+                Debug.LogWarning($"⚠️ Mask sprite not found for ID {maskId}");
+                continue;
             }
 
-            RectTransform rt = maskObj.GetComponent<RectTransform>();
-            if (rt != null)
+            // Spawn multiple copies of this mask
+            for (int copy = 0; copy < copiesPerMask; copy++)
             {
-                // Random starting position
-                rt.anchoredPosition = new Vector2(
-                    Random.Range(-screenWidth / 2, screenWidth / 2),
-                    Random.Range(-screenHeight / 2, screenHeight / 2)
-                );
+                GameObject maskObj = Instantiate(maskPrefab, flyingMaskContainer);
+                Image img = maskObj.GetComponent<Image>();
+                if (img != null)
+                {
+                    img.sprite = maskSprite;
+                }
 
-                // Random size
-                float size = Random.Range(100f, 250f);
-                rt.sizeDelta = new Vector2(size, size);
+                RectTransform rt = maskObj.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    // Random starting position
+                    rt.anchoredPosition = new Vector2(
+                        Random.Range(-screenWidth / 2, screenWidth / 2),
+                        Random.Range(-screenHeight / 2, screenHeight / 2)
+                    );
+
+                    // Random size
+                    float size = Random.Range(100f, 250f);
+                    rt.sizeDelta = new Vector2(size, size);
+                }
+
+                // Add flying behavior
+                FlyingMask flyingMask = new FlyingMask
+                {
+                    gameObject = maskObj,
+                    rectTransform = rt,
+                    velocity = new Vector2(
+                        Random.Range(-maskSpeed, maskSpeed),
+                        Random.Range(-maskSpeed, maskSpeed)
+                    ),
+                    spinSpeed = Random.Range(-spinSpeed, spinSpeed),
+                    screenWidth = screenWidth,
+                    screenHeight = screenHeight
+                };
+
+                flyingMasks.Add(flyingMask);
             }
-
-            // Add flying behavior
-            FlyingMask flyingMask = new FlyingMask
-            {
-                gameObject = maskObj,
-                rectTransform = rt,
-                velocity = new Vector2(
-                    Random.Range(-maskSpeed, maskSpeed),
-                    Random.Range(-maskSpeed, maskSpeed)
-                ),
-                spinSpeed = Random.Range(-spinSpeed, spinSpeed),
-                screenWidth = screenWidth,
-                screenHeight = screenHeight
-            };
-
-            flyingMasks.Add(flyingMask);
         }
 
         // Start animating
