@@ -30,6 +30,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject roundTitlePanel;
     [SerializeField] private TextMeshProUGUI roundTitleText;
 
+    [Header("Visual Timer")]
+    [SerializeField] private GameObject visualTimerPanel; // Container for visual timer
+    [SerializeField] private Image timerFillImage; // Radial fill image
+    [SerializeField] private TextMeshProUGUI timerSecondsText; // Optional seconds text
+
     [Header("Reaction Round Indicators")]
     [SerializeField] private GameObject redIndicator; // WAIT state
     [SerializeField] private GameObject greenIndicator; // GO state
@@ -143,13 +148,48 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Round Timer
+    // Round Timer (text-only, legacy)
     public void UpdateRoundTimer(float seconds)
     {
         if (roundTimerText != null)
         {
             roundTimerText.text = $"Time: {Mathf.Ceil(seconds):F0}s";
         }
+    }
+
+    // Visual Timer (radial fill with color changes)
+    public void UpdateVisualTimer(float timeRemaining, float totalTime)
+    {
+        if (timerFillImage == null) return;
+
+        float fillAmount = timeRemaining / totalTime;
+        timerFillImage.fillAmount = fillAmount;
+
+        // Color shift based on remaining time
+        if (fillAmount > 0.5f)
+            timerFillImage.color = Color.green;
+        else if (fillAmount > 0.25f)
+            timerFillImage.color = Color.yellow;
+        else
+            timerFillImage.color = Color.red;
+
+        // Optional: Show seconds inside timer
+        if (timerSecondsText != null)
+        {
+            timerSecondsText.text = Mathf.CeilToInt(timeRemaining).ToString();
+        }
+    }
+
+    public void ShowVisualTimer()
+    {
+        if (visualTimerPanel != null)
+            visualTimerPanel.SetActive(true);
+    }
+
+    public void HideVisualTimer()
+    {
+        if (visualTimerPanel != null)
+            visualTimerPanel.SetActive(false);
     }
 
     // Round Title
