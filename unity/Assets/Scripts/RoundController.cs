@@ -54,7 +54,7 @@ public class RoundController : MonoBehaviour
         
         currentSnap++;
 
-        if (currentSnap > totalSnaps)
+        if (currentSnap > totalSnaps || PlayerManager.Instance.GetAlivePlayers().Count < 3)
         {
             // All snaps complete, move to next round
             CompleteRound();

@@ -187,6 +187,8 @@ public class GameManager : MonoBehaviour
         CurrentRound++;
         currentRoundType = nextRoundType;
         
+        PlayerManager.Instance.ResetEliminations();
+        
         Debug.Log($"\n🎯 === ROUND {CurrentRound} ({currentRoundType}) ===");
 
         // Start the appropriate round type

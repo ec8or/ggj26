@@ -16,7 +16,9 @@ public class PlayerManager : MonoBehaviour
 
     public int maxPlayerCount;
 
-    void Awake()
+    public int numPlayersEliminatedThisRound { get; private set; }
+
+void Awake()
     {
         if (Instance != null)
         {
@@ -101,6 +103,11 @@ public class PlayerManager : MonoBehaviour
         return -1;
     }
 
+    public void ResetEliminations()
+    {
+        numPlayersEliminatedThisRound = 0;
+    }
+
     public void EliminatePlayer(string playerId, string reason)
     {
         if (!players.ContainsKey(playerId))
@@ -114,6 +121,8 @@ public class PlayerManager : MonoBehaviour
             Debug.LogWarning($"Player {playerId} is already eliminated");
             return;
         }
+
+        numPlayersEliminatedThisRound++;
 
         players[playerId].IsAlive = false;
         int playersRemaining = GetAliveCount();

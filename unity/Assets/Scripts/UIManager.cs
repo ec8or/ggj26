@@ -29,8 +29,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI playerCountText;
     [SerializeField] private TextMeshProUGUI roundNumberText;
     [SerializeField] private TextMeshProUGUI roundTimerText;
-
+    
     [Header("Interround Grid")]
+    [SerializeField] private GameObject interRoundSummaryGrp; // Container for showing joined players
+    [SerializeField] private TextMeshProUGUI interRoundCountTxt; // Container for showing joined players
     [SerializeField] private RectTransform interRoundGridContainer; // Container for showing joined players
     
     [Header("Round Title")]
@@ -68,6 +70,7 @@ public class UIManager : MonoBehaviour
         HideRoundTitle();
         HideReactionIndicators();
         HideVisualTimer(); // Hide timer during lobby
+        interRoundSummaryGrp.gameObject.SetActive(false);
 
         CreateLobbyMasks();
 
@@ -106,12 +109,14 @@ public class UIManager : MonoBehaviour
     {
         currentGameState = state;
 
+        interRoundSummaryGrp.SetActive(false);
         interRoundGridContainer.gameObject.SetActive(false);
         ClearInterRoundMasks();
         
         if (currentGameState == GameManager.GameState.RoundOver)
         {
             interRoundGridContainer.gameObject.SetActive(true);
+            ShowInterRoundSummary();
             RefreshInterRoundMasks();
         }
     }
@@ -195,7 +200,7 @@ public class UIManager : MonoBehaviour
         if (timerFillImage == null) return;
 
         float fillAmount = timeRemaining / totalTime;
-        timerFillImage.fillAmount = fillAmount;
+        //timerFillImage.fillAmount = fillAmount;
 
         // Color shift based on remaining time
         if (fillAmount > 0.5f)
@@ -216,13 +221,16 @@ public class UIManager : MonoBehaviour
                 timerSecondsText.text = lastSecondDisplay.ToString();
 
                 lastSecondChangeTime = Time.time;
+                
+                timerFillImage.fillAmount = fillAmount;
             }
             
             var timeSinceSecondChange = Time.time - lastSecondChangeTime;
 
-            var scale = Vector3.one * ((1f - timeSinceSecondChange) * 0.4f);
-            //timerSecondsText.transform.localScale = scale;
-            
+            var scale = Vector3.one * (1.2f - (timeSinceSecondChange * 0.3f));
+            var scale2 = scale;
+            scale2.x *= 1.1f;
+            timerSecondsText.transform.localScale = scale;
         }
     }
 
@@ -459,6 +467,20 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void ShowInterRoundSummary()
+    {
+        interRoundSummaryGrp.SetActive(true);
+        interRoundCountTxt.text = PlayerManager.Instance.numPlayersEliminatedThisRound.ToString();
+
+        StartCoroutine(HideInterRoundSummary());
+    }
+
+    IEnumerator HideInterRoundSummary()
+    {
+        yield return new WaitForSeconds(3f);
+        interRoundSummaryGrp.SetActive(false);
+    }
+    
     void RefreshInterRoundMasks()
     {
         if (interRoundMaskDisplays.Count == 0)

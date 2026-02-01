@@ -8,7 +8,9 @@ public class NetworkManager : MonoBehaviour
 {
     public static NetworkManager Instance { get; private set; }
 
+    [SerializeField] private string localUrl = "http://localhost:3000";
     [SerializeField] private string serverUrl = "http://localhost:3000";
+    [SerializeField] private bool useServer = false;
 
     private SocketIOUnity socket;
     public bool IsConnected => socket != null && socket.Connected;
@@ -67,7 +69,7 @@ public class NetworkManager : MonoBehaviour
 
     void ConnectToServer()
     {
-        socket = new SocketIOUnity(serverUrl);
+        socket = new SocketIOUnity(GetServerUrl());
 
         socket.OnConnected += (sender, e) =>
         {
@@ -160,7 +162,7 @@ public class NetworkManager : MonoBehaviour
         });
 
         socket.Connect();
-        Debug.Log($"🔌 Connecting to server at {serverUrl}...");
+        Debug.Log($"🔌 Connecting to server at {GetServerUrl()}...");
     }
 
     // Send game state to all clients
@@ -220,7 +222,7 @@ public class NetworkManager : MonoBehaviour
     // Get server URL for QR code generation
     public string GetServerUrl()
     {
-        return serverUrl;
+        return useServer ? serverUrl : localUrl;
     }
 }
 
