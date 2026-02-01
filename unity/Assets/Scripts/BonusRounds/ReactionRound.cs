@@ -11,6 +11,7 @@ public class ReactionRound : MonoBehaviour
 
     private Dictionary<string, long> playerReactionTimes = new Dictionary<string, long>();
     private HashSet<string> tappedDuringRed = new HashSet<string>(); // Track red light tappers (but don't eliminate)
+    private HashSet<string> markedForElimination = new HashSet<string>(); // Track who gets eliminated
     private long goSignalTime;
     private bool waitingForSpace = false; // Waiting for space press to start
     private bool waitingForGo = false; // Red light active
@@ -59,6 +60,7 @@ public class ReactionRound : MonoBehaviour
         waitingForGo = true;
         greenLightActive = false;
         playerReactionTimes.Clear();
+        markedForElimination.Clear();
 
         Debug.Log("🔴 RED LIGHT - Don't tap!");
 
@@ -159,6 +161,10 @@ public class ReactionRound : MonoBehaviour
 
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
 
+        Debug.Log($"⚡ EvaluateRound: {alivePlayers.Count} alive players");
+        Debug.Log($"⚡ {playerReactionTimes.Count} players tapped during green light");
+        Debug.Log($"⚡ {tappedDuringRed.Count} players tapped during red light");
+
         // Find the slowest tapper (or someone who didn't tap)
         string slowestPlayerId = null;
         long slowestTime = -1;
@@ -190,14 +196,16 @@ public class ReactionRound : MonoBehaviour
                 if (tappedDuringRed.Contains(player.Id))
                 {
                     Debug.Log($"❌ Mask #{player.MaskId} already has CROSS (tapped during red)");
+                    markedForElimination.Add(player.Id);
                     continue;
                 }
 
                 if (player.Id == slowestPlayerId)
                 {
-                    // Slowest tapper = cross
+                    // Slowest tapper or didn't tap = cross
                     MaskManager.Instance.ShowCrossOverlay(player.MaskId, 999f);
-                    Debug.Log($"❌ Mask #{player.MaskId} gets CROSS (slowest)");
+                    Debug.Log($"❌ Mask #{player.MaskId} gets CROSS (slowest/no tap)");
+                    markedForElimination.Add(player.Id);
                 }
                 else if (playerReactionTimes.ContainsKey(player.Id))
                 {
@@ -216,6 +224,22 @@ public class ReactionRound : MonoBehaviour
 
     void EndRound()
     {
+        // Eliminate everyone marked with a cross
+        int eliminatedCount = 0;
+
+        foreach (string playerId in markedForElimination)
+        {
+            var player = PlayerManager.Instance.GetPlayer(playerId);
+            if (player != null && player.IsAlive)
+            {
+                Debug.Log($"💀 Eliminating {playerId} (Mask #{player.MaskId})");
+                PlayerManager.Instance.EliminatePlayer(playerId, "reaction_round_failed");
+                eliminatedCount++;
+            }
+        }
+
+        Debug.Log($"⚡ Reaction Round: {eliminatedCount} players eliminated");
+
         if (MaskManager.Instance != null)
         {
             MaskManager.Instance.ClearAllOverlays();
