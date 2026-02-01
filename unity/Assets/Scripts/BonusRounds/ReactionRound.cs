@@ -8,6 +8,7 @@ public class ReactionRound : MonoBehaviour
     [SerializeField] private float minRedLightTime = 2f;
     [SerializeField] private float maxRedLightTime = 5f;
     [SerializeField] private float greenLightDuration = 2f; // How long to tap after GO
+    [SerializeField] private int maxCycles = 5; // Number of red/green cycles
 
     private Dictionary<string, long> playerReactionTimes = new Dictionary<string, long>();
     private HashSet<string> tappedDuringRed = new HashSet<string>(); // Track red light tappers (but don't eliminate)
@@ -57,14 +58,21 @@ public class ReactionRound : MonoBehaviour
 
     void StartRedLight()
     {
+        cycleCount++;
         waitingForGo = true;
         greenLightActive = false;
         playerReactionTimes.Clear();
         markedForElimination.Clear();
+        tappedDuringRed.Clear(); // Reset for new cycle
 
-        Debug.Log("🔴 RED LIGHT - Don't tap!");
+        Debug.Log($"🔴 RED LIGHT - Cycle {cycleCount}/{maxCycles} - Don't tap!");
 
-        // Red light is already showing, just wait for random time before GO
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowRedIndicator();
+        }
+
+        // Red light wait for random time before GO
         float waitTime = Random.Range(minRedLightTime, maxRedLightTime);
         Invoke(nameof(StartGreenLight), waitTime);
     }
@@ -269,13 +277,13 @@ public class ReactionRound : MonoBehaviour
             }
         }
 
-        Debug.Log($"⚡ Reaction Round complete - keeping all masks visible for now");
+        Debug.Log($"⚡ Cycle {cycleCount}/{maxCycles} complete - {markedForElimination.Count} marked for elimination");
 
-        // End round after showing results
-        Invoke(nameof(EndRound), 5f);
+        // Show results briefly, then eliminate and continue
+        Invoke(nameof(ProcessCycleEliminations), 2f);
     }
 
-    void EndRound()
+    void ProcessCycleEliminations()
     {
         // Eliminate everyone marked with a cross
         int eliminatedCount = 0;
@@ -291,10 +299,46 @@ public class ReactionRound : MonoBehaviour
             }
         }
 
-        Debug.Log($"⚡ Reaction Round: {eliminatedCount} players eliminated");
+        Debug.Log($"⚡ Cycle {cycleCount}: {eliminatedCount} players eliminated");
 
+        // Clear all overlays and update mask display
         if (MaskManager.Instance != null)
         {
+            MaskManager.Instance.ClearAllOverlays();
+
+            // Update displayed masks to only show survivors
+            var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
+            var aliveMaskIds = alivePlayers.Select(p => p.MaskId).ToList();
+            MaskManager.Instance.DisplayMasks(aliveMaskIds);
+
+            Debug.Log($"🎭 Updated display: {aliveMaskIds.Count} masks remaining");
+        }
+
+        // Check if we should continue or end
+        if (cycleCount >= maxCycles || PlayerManager.Instance.GetAliveCount() <= 1)
+        {
+            Debug.Log($"⚡ Reaction Round finished after {cycleCount} cycles");
+            EndRound();
+        }
+        else
+        {
+            // Start next cycle
+            Invoke(nameof(StartRedLight), 1f);
+        }
+    }
+
+    void EndRound()
+    {
+        // Hide indicators
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.HideReactionIndicators();
+        }
+
+        // Clear masks
+        if (MaskManager.Instance != null)
+        {
+            MaskManager.Instance.ClearMasks();
             MaskManager.Instance.ClearAllOverlays();
         }
 
