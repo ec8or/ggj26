@@ -8,7 +8,7 @@
  * Examples:
  *   node test-bot.js 10
  *   node test-bot.js 50 http://192.168.1.100:3000
- *   node test-bot.js 40 http://localhost:3000 2    (2 taps/second)
+ *   node test-bot.js 40 http://localhost:3000 2    (2 taps/second for sprint)
  *   node test-bot.js 40 http://localhost:3000 0.5  (1 tap every 2 seconds)
  *
  * Press Ctrl+C to disconnect all bots
@@ -23,7 +23,7 @@ const TAPS_PER_SECOND = parseFloat(process.argv[4]) || 0;
 console.log(`🤖 Starting ${NUM_BOTS} test bots...`);
 console.log(`📡 Connecting to: ${SERVER_URL}`);
 if (TAPS_PER_SECOND > 0) {
-  console.log(`⚡ Auto-tap: ${TAPS_PER_SECOND} taps/second\n`);
+  console.log(`⚡ Auto-tap enabled with smart behaviors per round type\n`);
 } else {
   console.log(`💤 Auto-tap: DISABLED\n`);
 }
@@ -38,7 +38,9 @@ class Bot {
     this.isAlive = true;
     this.tapsPerSecond = tapsPerSecond;
     this.autoTap = tapsPerSecond > 0;
-    this.tapInterval = null;
+    this.currentRoundType = null;
+    this.roundActive = false;
+    this.behaviorTimeout = null;
   }
 
   connect() {
@@ -58,16 +60,20 @@ class Bot {
     });
 
     this.socket.on('game_state', (data) => {
-      // Start/stop auto-tapping based on game state
+      this.currentRoundType = data.roundType;
+
       if (data.phase === 'playing' && this.autoTap && this.isAlive) {
-        this.startAutoTap();
+        this.roundActive = true;
+        this.startRoundBehavior();
       } else {
-        this.stopAutoTap();
+        this.roundActive = false;
+        this.stopBehavior();
       }
     });
 
     this.socket.on('eliminated', (data) => {
       this.isAlive = false;
+      this.stopBehavior();
       console.log(`💀 Bot ${this.id} (Mask #${this.maskId}) eliminated: ${data.reason}`);
     });
 
@@ -76,40 +82,126 @@ class Bot {
     });
   }
 
-  startAutoTap() {
-    if (this.tapInterval) return; // Already tapping
+  startRoundBehavior() {
+    this.stopBehavior(); // Clear any existing behavior
 
+    if (!this.roundActive || !this.isAlive) return;
+
+    switch (this.currentRoundType) {
+      case 'snap':
+      case 'advanced':
+        this.snapBehavior();
+        break;
+      case 'sprint':
+        this.sprintBehavior();
+        break;
+      case 'reaction':
+        this.reactionBehavior();
+        break;
+      case 'precision':
+        this.precisionBehavior();
+        break;
+      default:
+        // Unknown round type, use snap behavior as default
+        this.snapBehavior();
+    }
+  }
+
+  // SNAP/ADVANCED: 80% chance to tap (correct), 5% chance to tap (wrong)
+  snapBehavior() {
+    const checkAndTap = () => {
+      if (!this.roundActive || !this.isAlive) return;
+
+      const rand = Math.random();
+
+      if (rand < 0.40) {
+        // 40% chance to tap (simulating "your mask is shown")
+        // 80% of ~50% of masks being shown = ~40% tap rate
+        const delay = Math.random() * 3000; // Random delay 0-3s
+        this.behaviorTimeout = setTimeout(() => {
+          if (this.roundActive && this.isAlive) {
+            this.tap();
+          }
+        }, delay);
+      } else if (rand < 0.45) {
+        // 5% chance to tap (wrong tap - mask not shown)
+        const delay = Math.random() * 3000;
+        this.behaviorTimeout = setTimeout(() => {
+          if (this.roundActive && this.isAlive) {
+            this.tap();
+          }
+        }, delay);
+      }
+      // Else: Don't tap this round (simulating mask not shown and player doesn't tap)
+    };
+
+    checkAndTap();
+  }
+
+  // SPRINT: Continuous tapping at specified rate
+  sprintBehavior() {
     const baseIntervalMs = 1000 / this.tapsPerSecond;
-
-    // Add random initial delay (0-50% of interval) so bots don't start in sync
     const initialDelay = Math.random() * baseIntervalMs * 0.5;
 
-    setTimeout(() => {
-      if (!this.isAlive) return;
+    this.behaviorTimeout = setTimeout(() => {
+      if (!this.roundActive || !this.isAlive) return;
 
-      // Tap with randomized intervals to prevent lockstep
-      const tapWithRandomness = () => {
-        if (this.isAlive) {
+      const tapRepeatedly = () => {
+        if (this.roundActive && this.isAlive) {
           this.tap();
 
-          // Add ±20% randomness to each tap interval
+          // Add ±20% randomness
           const variance = baseIntervalMs * 0.2;
           const randomInterval = baseIntervalMs + (Math.random() - 0.5) * variance;
 
-          this.tapInterval = setTimeout(tapWithRandomness, randomInterval);
-        } else {
-          this.stopAutoTap();
+          this.behaviorTimeout = setTimeout(tapRepeatedly, randomInterval);
         }
       };
 
-      tapWithRandomness();
+      tapRepeatedly();
     }, initialDelay);
   }
 
-  stopAutoTap() {
-    if (this.tapInterval) {
-      clearTimeout(this.tapInterval);
-      this.tapInterval = null;
+  // REACTION: Very small chance to tap early (during red), then random reaction time
+  reactionBehavior() {
+    // 2% chance to tap too early (during red light)
+    if (Math.random() < 0.02) {
+      const earlyTapDelay = Math.random() * 2000; // Tap within first 2 seconds
+      this.behaviorTimeout = setTimeout(() => {
+        if (this.roundActive && this.isAlive) {
+          this.tap(); // Will be eliminated for tapping during red
+        }
+      }, earlyTapDelay);
+      return;
+    }
+
+    // Otherwise, wait for "green light" (assume it starts after 2-5s)
+    // Then tap with random reaction time
+    const redLightWait = 2000 + Math.random() * 3000; // 2-5 seconds
+    const reactionTime = 100 + Math.random() * 1500; // 100-1600ms reaction
+
+    this.behaviorTimeout = setTimeout(() => {
+      if (this.roundActive && this.isAlive) {
+        this.tap();
+      }
+    }, redLightWait + reactionTime);
+  }
+
+  // PRECISION: Tap at random time between 0-10 seconds
+  precisionBehavior() {
+    const tapTime = Math.random() * 10000; // Random time 0-10s
+
+    this.behaviorTimeout = setTimeout(() => {
+      if (this.roundActive && this.isAlive) {
+        this.tap();
+      }
+    }, tapTime);
+  }
+
+  stopBehavior() {
+    if (this.behaviorTimeout) {
+      clearTimeout(this.behaviorTimeout);
+      this.behaviorTimeout = null;
     }
   }
 
@@ -123,7 +215,7 @@ class Bot {
   }
 
   disconnect() {
-    this.stopAutoTap();
+    this.stopBehavior();
     if (this.socket) {
       this.socket.disconnect();
     }
@@ -145,7 +237,11 @@ async function startBots() {
 
   console.log(`\n✅ All ${NUM_BOTS} bots connected!`);
   if (TAPS_PER_SECOND > 0) {
-    console.log(`⚡ Bots will auto-tap at ${TAPS_PER_SECOND} taps/second during rounds`);
+    console.log(`🧠 Smart behaviors enabled:`);
+    console.log(`   - Snap/Advanced: 40% correct tap, 5% wrong tap`);
+    console.log(`   - Sprint: ${TAPS_PER_SECOND} taps/second`);
+    console.log(`   - Reaction: Random reaction times, 2% early tap`);
+    console.log(`   - Precision: Random tap time 0-10s`);
   } else {
     console.log('💡 Auto-tap is DISABLED (bots just sit there for UI testing)');
   }
