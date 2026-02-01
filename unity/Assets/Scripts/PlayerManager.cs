@@ -41,10 +41,17 @@ void Awake()
     void AddPlayer(string playerId)
     {
         if (GameManager.Instance.CurrentState != GameManager.GameState.Lobby) return;
-        
+
         if (players.ContainsKey(playerId))
         {
             Debug.LogWarning($"Player {playerId} already exists!");
+            return;
+        }
+
+        // Limit to 40 players max
+        if (players.Count >= 40)
+        {
+            Debug.LogWarning($"⚠️ Game is full (40 players max). Player {playerId} rejected.");
             return;
         }
 

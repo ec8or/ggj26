@@ -37,7 +37,7 @@ public class ChaosRound : MonoBehaviour
         // Show title screen
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundInfo("CHAOS CARD","Everyone gets a NEW mask!");
+            UIManager.Instance.ShowRoundInfo("CHAOS CARD","Everyone gets a NEW mask!", 0f); // No auto-timeout
         }
         else
         {
@@ -57,6 +57,14 @@ public class ChaosRound : MonoBehaviour
         else
         {
             Debug.LogError("❌ PlayerManager not found - can't randomize masks!");
+        }
+
+        // Show instruction to press space
+        yield return new WaitForSeconds(1f); // Let masks appear first
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowRoundInfo("🃏 CHAOS CARD 🃏", "Press SPACE to continue", 0f);
         }
 
         // Wait for Space press

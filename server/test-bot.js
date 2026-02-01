@@ -163,29 +163,22 @@ class Bot {
     }, initialDelay);
   }
 
-  // REACTION: Very small chance to tap early (during red), then random reaction time
+  // REACTION: Tap repeatedly at 5-8 second intervals (for all 5 cycles)
   reactionBehavior() {
-    // 2% chance to tap too early (during red light)
-    if (Math.random() < 0.02) {
-      const earlyTapDelay = Math.random() * 2000; // Tap within first 2 seconds
-      this.behaviorTimeout = setTimeout(() => {
-        if (this.roundActive && this.isAlive) {
-          this.tap(); // Will be eliminated for tapping during red
-        }
-      }, earlyTapDelay);
-      return;
-    }
+    const tapRepeatedly = () => {
+      if (!this.roundActive || !this.isAlive) return;
 
-    // Otherwise, wait for "green light" (assume it starts after 2-5s)
-    // Then tap with random reaction time
-    const redLightWait = 2000 + Math.random() * 3000; // 2-5 seconds
-    const reactionTime = 100 + Math.random() * 1500; // 100-1600ms reaction
+      // Tap now
+      this.tap();
 
-    this.behaviorTimeout = setTimeout(() => {
-      if (this.roundActive && this.isAlive) {
-        this.tap();
-      }
-    }, redLightWait + reactionTime);
+      // Schedule next tap in 5-8 seconds
+      const nextTapDelay = 5000 + Math.random() * 3000;
+      this.behaviorTimeout = setTimeout(tapRepeatedly, nextTapDelay);
+    };
+
+    // Start first tap after 5-8 seconds
+    const initialDelay = 5000 + Math.random() * 3000;
+    this.behaviorTimeout = setTimeout(tapRepeatedly, initialDelay);
   }
 
   // PRECISION: Tap at random time between 0-10 seconds
@@ -239,9 +232,9 @@ async function startBots() {
   console.log(`\n✅ All ${NUM_BOTS} bots connected!`);
   if (TAPS_PER_SECOND > 0) {
     console.log(`🧠 Smart behaviors enabled:`);
-    console.log(`   - Snap/Advanced: 70% correct tap, 10% wrong tap, 20% no tap`);
+    console.log(`   - Snap/Advanced: 70% correct tap, 10% wrong tap, 20% no tap (3-5 taps per round)`);
     console.log(`   - Sprint: ${TAPS_PER_SECOND} taps/second`);
-    console.log(`   - Reaction: Random reaction times, 2% early tap`);
+    console.log(`   - Reaction: Tap randomly 5-8s (tests both red & green light)`);
     console.log(`   - Precision: Random tap time 0-10s`);
   } else {
     console.log('💡 Auto-tap is DISABLED (bots just sit there for UI testing)');

@@ -2,12 +2,16 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-// AdvancedRound: Same as Main round, but masks have visual effects
+// AdvancedRound: Same as Snap round, but masks have random visual effects
 public class AdvancedRound : MonoBehaviour
 {
-    [SerializeField] private float roundDuration = 7f; // Slightly longer because harder
+    [Header("Round Settings")]
+    [SerializeField] private float roundDuration = 5f; // Seconds to tap
     [SerializeField] private int minMasks = 3;
     [SerializeField] private int maxMasks = 5;
+    [SerializeField] private int snapsPerRound = 5; // How many snaps before moving to next round
+    [SerializeField] private int defaultRoundEliminationCount = 1;
+    [SerializeField] private float endSnapDelay = 2f;
 
     private List<int> currentActiveMasks = new List<int>();
     private HashSet<string> playersWhoTapped = new HashSet<string>();
@@ -15,6 +19,9 @@ public class AdvancedRound : MonoBehaviour
     private Dictionary<GameObject, MaskEffect> maskEffects = new Dictionary<GameObject, MaskEffect>();
     private float roundTimer;
     private bool roundActive = false;
+    private int currentSnap = 0;
+    private int totalSnaps = 0;
+    private int currentRoundEliminationCount = 1;
 
     // Visual effect types
     private enum EffectType { Spinning, Pulsing, Blinking, MovingHorizontal, MovingVertical }
@@ -38,23 +45,49 @@ public class AdvancedRound : MonoBehaviour
 
     public void StartAdvancedRound()
     {
-        Debug.Log("🔍 StartAdvancedRound called!");
+        currentSnap = 0;
+        currentRoundEliminationCount = defaultRoundEliminationCount;
+        totalSnaps = snapsPerRound;
+
+        // Show title screen only once at the start
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowRoundInfo($"ADVANCED SNAP", $"{totalSnaps} Snaps with Effects!", 2f);
+        }
+
+        Invoke(nameof(StartNextSnap), 2f); // Delay before first snap
+    }
+
+    private void StartNextSnap()
+    {
+        if (MaskManager.Instance != null)
+        {
+            MaskManager.Instance.ClearMasks();
+        }
+
+        maskEffects.Clear();
+        currentSnap++;
+
+        if (currentSnap > totalSnaps || PlayerManager.Instance.GetAlivePlayers().Count < 3)
+        {
+            // All snaps complete, move to next round
+            CompleteRound();
+            return;
+        }
 
         currentActiveMasks.Clear();
         playersWhoTapped.Clear();
         masksAlreadyAnimated.Clear();
-        maskEffects.Clear();
         roundActive = true;
         roundTimer = roundDuration;
 
-        // SAME AS MAIN ROUND: Select 3-5 random masks from alive players
+        // Select 3-5 random masks from alive players
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
-
-        Debug.Log($"🔍 Found {alivePlayers.Count} alive players");
 
         if (alivePlayers.Count == 0)
         {
-            Debug.LogError("❌ No alive players for Advanced Round!");
+            Debug.LogError("No alive players to start Advanced round!");
+            CompleteRound();
             return;
         }
 
@@ -64,23 +97,22 @@ public class AdvancedRound : MonoBehaviour
         var selectedPlayers = alivePlayers.OrderBy(x => Random.value).Take(maskCount);
         currentActiveMasks = selectedPlayers.Select(p => p.MaskId).ToList();
 
-        // Display masks on screen (same as Main round)
+        // Display masks on screen
         if (MaskManager.Instance != null)
         {
-            Debug.Log($"🔍 Calling DisplayMasks with {currentActiveMasks.Count} masks");
             MaskManager.Instance.DisplayMasks(currentActiveMasks);
-            Debug.Log("🔍 DisplayMasks completed");
 
             // NEW: Apply random visual effects to make it harder!
             ApplyRandomEffects();
         }
-        else
+
+        // Update UI with snap counter
+        if (UIManager.Instance != null)
         {
-            Debug.LogError("❌ MaskManager.Instance is NULL!");
+            UIManager.Instance.ShowVisualTimer();
         }
 
-        Debug.Log($"💀 Advanced Round! Masks with effects: {string.Join(", ", currentActiveMasks.Select(m => $"#{m}"))}");
-        
+        Debug.Log($"🎭 Advanced Snap {currentSnap}/{totalSnaps} active! Masks shown: {string.Join(", ", currentActiveMasks.Select(m => $"#{m}"))}");
     }
 
     void ApplyRandomEffects()
@@ -107,7 +139,7 @@ public class AdvancedRound : MonoBehaviour
 
             maskEffects[maskObj] = maskEffect;
 
-            Debug.Log($"  Applied {effect} effect to mask at {rt.anchoredPosition}");
+            Debug.Log($"  Applied {effect} effect to mask");
         }
 
         Debug.Log($"✅ Applied effects to {maskEffects.Count} masks");
@@ -117,12 +149,12 @@ public class AdvancedRound : MonoBehaviour
     {
         if (!roundActive) return;
 
-        // Countdown timer
         roundTimer -= Time.deltaTime;
 
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateRoundTimer(roundTimer);
+            UIManager.Instance.UpdateVisualTimer(roundTimer, roundDuration);
         }
 
         // Apply visual effects to masks
@@ -130,7 +162,7 @@ public class AdvancedRound : MonoBehaviour
 
         if (roundTimer <= 0)
         {
-            EvaluateRound();
+            EndSnapRound();
         }
     }
 
@@ -194,64 +226,111 @@ public class AdvancedRound : MonoBehaviour
 
         // Animate mask if it's a correct tap (only once per round)
         var player = PlayerManager.Instance.GetPlayer(tapData.PlayerId);
-        if (player != null && currentActiveMasks.Contains(player.MaskId))
+        if (player != null)
         {
-            if (!masksAlreadyAnimated.Contains(player.MaskId))
+            if (currentActiveMasks.Contains(player.MaskId))
             {
-                masksAlreadyAnimated.Add(player.MaskId);
-                if (MaskManager.Instance != null)
+                // Correct tap! Animate the mask (only if not already animated)
+                if (!masksAlreadyAnimated.Contains(player.MaskId))
                 {
-                    MaskManager.Instance.AnimateSafeTap(player.MaskId);
+                    masksAlreadyAnimated.Add(player.MaskId);
+                    if (MaskManager.Instance != null)
+                    {
+                        MaskManager.Instance.AnimateSafeTap(player.MaskId);
+                        MaskManager.Instance.ShowTickOverlay(player.MaskId, 20f);
+                    }
                 }
             }
+            else
+            {
+                // Invalid tap - eliminate immediately
+                PlayerManager.Instance.EliminatePlayer(player.Id, "wrong_tap");
+            }
+        }
+
+        CheckEndSnapRound();
+    }
+
+    void CheckEndSnapRound()
+    {
+        Debug.Log($"CheckEndSnapRound - playersWhoTapped.Count: {playersWhoTapped.Count}, currentActiveMasks.Count: {currentActiveMasks.Count}, currentRoundEliminationCount: {currentRoundEliminationCount}");
+
+        var activePlayersLeft = currentActiveMasks.Count;
+        foreach (var currentActiveMask in currentActiveMasks)
+        {
+            var player = PlayerManager.Instance.GetPlayerByMaskId(currentActiveMask);
+            if (playersWhoTapped.Contains(player.Id))
+            {
+                activePlayersLeft--;
+            }
+        }
+        if (activePlayersLeft <= currentRoundEliminationCount)
+        {
+            EndSnapRound();
         }
     }
 
-    void EvaluateRound()
+    void EndSnapRound()
     {
         roundActive = false;
 
-        Debug.Log("📊 Evaluating Advanced Round...");
-
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.HideRoundTitle();
-        }
-
-        if (MaskManager.Instance != null)
-        {
-            MaskManager.Instance.ClearMasks();
-        }
-
-        maskEffects.Clear();
-
-        // SAME AS MAIN ROUND: Evaluate eliminations
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
-        int eliminatedThisRound = 0;
+        int eliminatedThisSnap = 0;
 
+        // First pass: Show overlays and eliminate
         foreach (var player in alivePlayers)
         {
             bool playerTapped = playersWhoTapped.Contains(player.Id);
             bool playerMaskWasActive = currentActiveMasks.Contains(player.MaskId);
 
-            // Eliminate if:
-            // 1. Tapped when mask was NOT active (wrong tap)
-            // 2. Didn't tap when mask WAS active (missed tap)
-            if (playerTapped && !playerMaskWasActive)
+            // Show overlay feedback
+            if (playerMaskWasActive)
             {
-                PlayerManager.Instance.EliminatePlayer(player.Id, "wrong_tap");
-                eliminatedThisRound++;
+                // Their mask was shown
+                if (playerTapped)
+                {
+                    // Correct! Show tick
+                    MaskManager.Instance.ShowTickOverlay(player.MaskId, 2.0f);
+                }
+                else
+                {
+                    // Didn't tap - show cross and eliminate
+                    MaskManager.Instance.ShowCrossOverlay(player.MaskId, 2.0f);
+                    PlayerManager.Instance.EliminatePlayer(player.Id, "missed_tap");
+                    eliminatedThisSnap++;
+                }
             }
-            else if (!playerTapped && playerMaskWasActive)
+            else
             {
-                PlayerManager.Instance.EliminatePlayer(player.Id, "missed_tap");
-                eliminatedThisRound++;
+                // Their mask was NOT shown
+                if (playerTapped)
+                {
+                    // Wrong tap! Already eliminated immediately
+                    eliminatedThisSnap++;
+                }
+                // If they didn't tap and their mask wasn't shown = correct (do nothing)
             }
         }
 
-        Debug.Log($"📊 Advanced Round complete. {eliminatedThisRound} players eliminated.");
+        Debug.Log($"📊 Advanced Snap {currentSnap}/{totalSnaps} complete. {eliminatedThisSnap} players eliminated.");
 
-        // Notify GameManager to continue
+        // Start next snap after delay
+        Invoke(nameof(StartNextSnap), endSnapDelay);
+    }
+
+    private void CompleteRound()
+    {
+        Debug.Log($"📊 Advanced Round complete! All {totalSnaps} snaps finished.");
+
+        maskEffects.Clear();
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.HideRoundTitle();
+            UIManager.Instance.HideVisualTimer();
+        }
+
+        // Notify GameManager
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnRoundComplete();
