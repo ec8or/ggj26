@@ -293,6 +293,12 @@ public class GameManager : MonoBehaviour
         
         //Invoke(nameof(NextRound), 2f); // 2 second delay between rounds
 
+        if (PlayerManager.Instance.GetAliveCount() <= 1)
+        {
+            EndGame();
+            return;
+        }
+        
         CurrentState = GameState.RoundOver;
     }
 }

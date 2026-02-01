@@ -51,7 +51,9 @@ public class UIManager : MonoBehaviour
 
     [Header("Game Over")]
     [SerializeField] private GameObject winnerPanel;
-    [SerializeField] private TextMeshProUGUI winnerText;
+    [SerializeField] private GameObject winnerGrp;
+    [SerializeField] private GameObject noWinnerGrp;
+    [SerializeField] private Image winnerImg;
 
     void Awake()
     {
@@ -515,19 +517,33 @@ public class UIManager : MonoBehaviour
         if (winnerPanel != null)
         {
             winnerPanel.SetActive(true);
-        }
 
-        if (winnerText != null)
-        {
-            if (maskId > 0)
+            if (maskId < 0)
             {
-                winnerText.text = $"🏆 WINNER 🏆\n\nMask #{maskId}";
+                noWinnerGrp.gameObject.SetActive(true);
+                winnerGrp.gameObject.SetActive(false);
+                winnerImg.gameObject.SetActive(false);
             }
             else
             {
-                winnerText.text = "GAME OVER\n\nNo Winner!";
+                noWinnerGrp.gameObject.SetActive(false);
+                winnerGrp.gameObject.SetActive(true);
+                winnerImg.gameObject.SetActive(true);
+                winnerImg.sprite = MaskManager.Instance.GetMaskSprite(maskId);
             }
         }
+
+        // if (winnerText != null)
+        // {
+        //     if (maskId > 0)
+        //     {
+        //         winnerText.text = $"🏆 WINNER 🏆\n\nMask #{maskId}";
+        //     }
+        //     else
+        //     {
+        //         winnerText.text = "GAME OVER\n\nNo Winner!";
+        //     }
+        // }
     }
 
     public void HideWinner()
