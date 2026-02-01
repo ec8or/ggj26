@@ -3,11 +3,13 @@
  *
  * Usage:
  *   npm run bots              (spawns 40 bots on localhost:3000)
- *   node test-bot.js [numBots] [serverUrl]
+ *   node test-bot.js [numBots] [serverUrl] [tapsPerSecond]
  *
  * Examples:
  *   node test-bot.js 10
  *   node test-bot.js 50 http://192.168.1.100:3000
+ *   node test-bot.js 40 http://localhost:3000 2    (2 taps/second)
+ *   node test-bot.js 40 http://localhost:3000 0.5  (1 tap every 2 seconds)
  *
  * Press Ctrl+C to disconnect all bots
  */
@@ -16,19 +18,27 @@ const io = require('socket.io-client');
 
 const NUM_BOTS = parseInt(process.argv[2]) || 10;
 const SERVER_URL = process.argv[3] || 'http://localhost:3000';
+const TAPS_PER_SECOND = parseFloat(process.argv[4]) || 0;
 
 console.log(`🤖 Starting ${NUM_BOTS} test bots...`);
-console.log(`📡 Connecting to: ${SERVER_URL}\n`);
+console.log(`📡 Connecting to: ${SERVER_URL}`);
+if (TAPS_PER_SECOND > 0) {
+  console.log(`⚡ Auto-tap: ${TAPS_PER_SECOND} taps/second\n`);
+} else {
+  console.log(`💤 Auto-tap: DISABLED\n`);
+}
 
 const bots = [];
 
 class Bot {
-  constructor(id) {
+  constructor(id, tapsPerSecond) {
     this.id = id;
     this.socket = null;
     this.maskId = null;
     this.isAlive = true;
-    this.autoTap = false; // Disabled by default - just for UI testing
+    this.tapsPerSecond = tapsPerSecond;
+    this.autoTap = tapsPerSecond > 0;
+    this.tapInterval = null;
   }
 
   connect() {
@@ -48,15 +58,11 @@ class Bot {
     });
 
     this.socket.on('game_state', (data) => {
-      // Bot could react to game state here
+      // Start/stop auto-tapping based on game state
       if (data.phase === 'playing' && this.autoTap && this.isAlive) {
-        // Random delay before tapping (0-2 seconds)
-        const delay = Math.random() * 2000;
-        setTimeout(() => {
-          if (this.isAlive) {
-            this.tap();
-          }
-        }, delay);
+        this.startAutoTap();
+      } else {
+        this.stopAutoTap();
       }
     });
 
@@ -70,6 +76,26 @@ class Bot {
     });
   }
 
+  startAutoTap() {
+    if (this.tapInterval) return; // Already tapping
+
+    const intervalMs = 1000 / this.tapsPerSecond;
+    this.tapInterval = setInterval(() => {
+      if (this.isAlive) {
+        this.tap();
+      } else {
+        this.stopAutoTap();
+      }
+    }, intervalMs);
+  }
+
+  stopAutoTap() {
+    if (this.tapInterval) {
+      clearInterval(this.tapInterval);
+      this.tapInterval = null;
+    }
+  }
+
   tap() {
     if (!this.socket || !this.isAlive) return;
 
@@ -80,6 +106,7 @@ class Bot {
   }
 
   disconnect() {
+    this.stopAutoTap();
     if (this.socket) {
       this.socket.disconnect();
     }
@@ -89,7 +116,7 @@ class Bot {
 // Create and connect bots with staggered timing
 async function startBots() {
   for (let i = 1; i <= NUM_BOTS; i++) {
-    const bot = new Bot(i);
+    const bot = new Bot(i, TAPS_PER_SECOND);
     bot.connect();
     bots.push(bot);
 
@@ -100,7 +127,11 @@ async function startBots() {
   }
 
   console.log(`\n✅ All ${NUM_BOTS} bots connected!`);
-  console.log('💡 Auto-tap is DISABLED (bots just sit there for UI testing)');
+  if (TAPS_PER_SECOND > 0) {
+    console.log(`⚡ Bots will auto-tap at ${TAPS_PER_SECOND} taps/second during rounds`);
+  } else {
+    console.log('💡 Auto-tap is DISABLED (bots just sit there for UI testing)');
+  }
   console.log('Press Ctrl+C to disconnect all bots\n');
 }
 

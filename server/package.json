@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "bots": "node test-bot.js 40"
+    "bots": "node test-bot.js 40",
+    "bots:tap": "node test-bot.js 40 http://localhost:3000 2"
   },
   "dependencies": {
     "canvas": "^3.2.1",
