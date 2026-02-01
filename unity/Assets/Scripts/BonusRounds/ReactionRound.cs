@@ -203,8 +203,8 @@ public class ReactionRound : MonoBehaviour
         int remaining = PlayerManager.Instance.GetAliveCount();
         Debug.Log($"⚡ Cycle {cycleCount} complete. {remaining} players remaining.");
 
-        // Short pause, then continue to next cycle (or show winner if only 1 left)
-        Invoke(nameof(StartRedLight), 1.5f);
+        // Pause before next cycle (or show winner if only 1 left)
+        Invoke(nameof(StartRedLight), 3f);
     }
 
     void ShowWinner()
