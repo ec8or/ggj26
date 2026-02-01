@@ -202,13 +202,7 @@ public class UIManager : MonoBehaviour
         float fillAmount = timeRemaining / totalTime;
         //timerFillImage.fillAmount = fillAmount;
 
-        // Color shift based on remaining time
-        if (fillAmount > 0.5f)
-            timerFillImage.color = Color.green;
-        else if (fillAmount > 0.25f)
-            timerFillImage.color = Color.yellow;
-        else
-            timerFillImage.color = Color.red;
+        // Color shift based on remaining tim
 
         // Optional: Show seconds inside timer
         if (timerSecondsText != null)
@@ -223,6 +217,12 @@ public class UIManager : MonoBehaviour
                 lastSecondChangeTime = Time.time;
                 
                 timerFillImage.fillAmount = fillAmount;
+                if (fillAmount > 0.5f)
+                    timerFillImage.color = Color.green;
+                else if (fillAmount > 0.25f)
+                    timerFillImage.color = Color.yellow;
+                else
+                    timerFillImage.color = Color.red;
             }
             
             var timeSinceSecondChange = Time.time - lastSecondChangeTime;
