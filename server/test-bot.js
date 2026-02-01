@@ -107,24 +107,23 @@ class Bot {
     }
   }
 
-  // SNAP/ADVANCED: 80% chance to tap (correct), 5% chance to tap (wrong)
+  // SNAP/ADVANCED: Aggressive tapping to simulate active players
   snapBehavior() {
     const checkAndTap = () => {
       if (!this.roundActive || !this.isAlive) return;
 
       const rand = Math.random();
 
-      if (rand < 0.40) {
-        // 40% chance to tap (simulating "your mask is shown")
-        // 80% of ~50% of masks being shown = ~40% tap rate
+      if (rand < 0.70) {
+        // 70% chance to tap (simulating "your mask is shown and you tap")
         const delay = Math.random() * 3000; // Random delay 0-3s
         this.behaviorTimeout = setTimeout(() => {
           if (this.roundActive && this.isAlive) {
             this.tap();
           }
         }, delay);
-      } else if (rand < 0.45) {
-        // 5% chance to tap (wrong tap - mask not shown)
+      } else if (rand < 0.80) {
+        // 10% chance to tap (wrong tap - mask not shown but you tap anyway)
         const delay = Math.random() * 3000;
         this.behaviorTimeout = setTimeout(() => {
           if (this.roundActive && this.isAlive) {
@@ -132,7 +131,7 @@ class Bot {
           }
         }, delay);
       }
-      // Else: Don't tap this round (simulating mask not shown and player doesn't tap)
+      // Else: 20% don't tap (simulating mask not shown OR player missed it)
     };
 
     checkAndTap();
@@ -238,7 +237,7 @@ async function startBots() {
   console.log(`\n✅ All ${NUM_BOTS} bots connected!`);
   if (TAPS_PER_SECOND > 0) {
     console.log(`🧠 Smart behaviors enabled:`);
-    console.log(`   - Snap/Advanced: 40% correct tap, 5% wrong tap`);
+    console.log(`   - Snap/Advanced: 70% correct tap, 10% wrong tap, 20% no tap`);
     console.log(`   - Sprint: ${TAPS_PER_SECOND} taps/second`);
     console.log(`   - Reaction: Random reaction times, 2% early tap`);
     console.log(`   - Precision: Random tap time 0-10s`);
