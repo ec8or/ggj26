@@ -157,23 +157,40 @@ public class RoundController : MonoBehaviour
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
         int eliminatedThisSnap = 0;
 
+        // First pass: Show overlays and eliminate
         foreach (var player in alivePlayers)
         {
             bool playerTapped = playersWhoTapped.Contains(player.Id);
             bool playerMaskWasActive = currentActiveMasks.Contains(player.MaskId);
 
-            // Eliminate if:
-            // 1. Tapped when mask was NOT active (wrong tap)
-            // 2. Didn't tap when mask WAS active (missed tap)
-            if (playerTapped && !playerMaskWasActive)
+            // Show overlay feedback
+            if (playerMaskWasActive)
             {
-                PlayerManager.Instance.EliminatePlayer(player.Id, "wrong_tap");
-                eliminatedThisSnap++;
+                // Their mask was shown
+                if (playerTapped)
+                {
+                    // Correct! Show tick
+                    MaskManager.Instance.ShowTickOverlay(player.MaskId, 2.0f);
+                }
+                else
+                {
+                    // Didn't tap - show cross and eliminate
+                    MaskManager.Instance.ShowCrossOverlay(player.MaskId, 2.0f);
+                    PlayerManager.Instance.EliminatePlayer(player.Id, "missed_tap");
+                    eliminatedThisSnap++;
+                }
             }
-            else if (!playerTapped && playerMaskWasActive)
+            else
             {
-                PlayerManager.Instance.EliminatePlayer(player.Id, "missed_tap");
-                eliminatedThisSnap++;
+                // Their mask was NOT shown
+                if (playerTapped)
+                {
+                    // Wrong tap! Show cross and eliminate
+                    MaskManager.Instance.ShowCrossOverlay(player.MaskId, 2.0f);
+                    PlayerManager.Instance.EliminatePlayer(player.Id, "wrong_tap");
+                    eliminatedThisSnap++;
+                }
+                // If they didn't tap and their mask wasn't shown = correct (do nothing)
             }
         }
 
