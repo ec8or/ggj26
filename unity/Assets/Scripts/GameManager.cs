@@ -315,7 +315,7 @@ public class GameManager : MonoBehaviour
     {
         if(succeedSound != null) audioSource.PlayOneShot(succeedSound);
     }
-    public void PlayWin()
+    public void PlayWinSound()
     {
         if(winSound != null) audioSource.PlayOneShot(winSound);
     }

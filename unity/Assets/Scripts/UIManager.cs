@@ -516,7 +516,7 @@ public class UIManager : MonoBehaviour
     {
         if (winnerPanel != null)
         {
-            GameManager.Instance.PlaySuccessSound();
+            GameManager.Instance.PlayWinSound();
             
             winnerPanel.SetActive(true);
 
