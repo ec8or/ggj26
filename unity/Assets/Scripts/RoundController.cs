@@ -137,6 +137,7 @@ public class RoundController : MonoBehaviour
                     if (MaskManager.Instance != null)
                     {
                         MaskManager.Instance.AnimateSafeTap(player.MaskId);
+                        MaskManager.Instance.ShowTickOverlay(player.MaskId, 20f);
                     }
                 }
             }
