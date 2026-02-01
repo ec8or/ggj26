@@ -70,6 +70,17 @@ public class SprintRound : MonoBehaviour
             UIManager.Instance.ShowGreenIndicator(); // Switch to green light
             UIManager.Instance.ShowVisualTimer(); // Show timer when race starts
         }
+
+        // Hide green light after 2 seconds so it doesn't block the race
+        Invoke(nameof(HideIndicators), 2f);
+    }
+
+    void HideIndicators()
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.HideReactionIndicators();
+        }
     }
 
     void DisplayRacingMasks()
