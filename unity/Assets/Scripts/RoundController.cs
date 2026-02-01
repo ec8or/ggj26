@@ -9,6 +9,8 @@ public class RoundController : MonoBehaviour
     [SerializeField] private int minMasks = 3;
     [SerializeField] private int maxMasks = 5;
     [SerializeField] private int snapsPerRound = 5; // How many snaps before moving to next round
+    [SerializeField] private int defaultRoundEliminationCount = 1;
+    [SerializeField] private float endSnapDelay = 2f;
 
     private List<int> currentActiveMasks = new List<int>();
     private HashSet<string> playersWhoTapped = new HashSet<string>();
@@ -17,6 +19,7 @@ public class RoundController : MonoBehaviour
     private bool roundActive = false;
     private int currentSnap = 0;
     private int totalSnaps = 0;
+    private int currentRoundEliminationCount = 1;
 
     void Start()
     {
@@ -30,6 +33,7 @@ public class RoundController : MonoBehaviour
     public void StartRound()
     {
         currentSnap = 0;
+        currentRoundEliminationCount = defaultRoundEliminationCount;
         totalSnaps = snapsPerRound;
 
         // Show title screen only once at the start
@@ -43,6 +47,11 @@ public class RoundController : MonoBehaviour
 
     private void StartNextSnap()
     {
+        if (MaskManager.Instance != null)
+        {
+            MaskManager.Instance.ClearMasks();
+        }
+        
         currentSnap++;
 
         if (currentSnap > totalSnaps)
@@ -102,7 +111,7 @@ public class RoundController : MonoBehaviour
 
         if (roundTimer <= 0)
         {
-            EvaluateRound();
+            EndSnapRound();
         }
     }
 
@@ -127,16 +136,21 @@ public class RoundController : MonoBehaviour
                 }
             }
         }
+
+        CheckEndSnapRound();
     }
 
-    void EvaluateRound()
+    void CheckEndSnapRound()
+    {
+        if (playersWhoTapped.Count >= currentActiveMasks.Count - currentRoundEliminationCount)
+        {
+            EndSnapRound();
+        }
+
+    }
+    void EndSnapRound()
     {
         roundActive = false;
-
-        if (MaskManager.Instance != null)
-        {
-            MaskManager.Instance.ClearMasks();
-        }
 
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
         int eliminatedThisSnap = 0;
@@ -164,7 +178,7 @@ public class RoundController : MonoBehaviour
         Debug.Log($"📊 Snap {currentSnap}/{totalSnaps} complete. {eliminatedThisSnap} players eliminated.");
 
         // Start next snap after delay
-        Invoke(nameof(StartNextSnap), 1.5f);
+        Invoke(nameof(StartNextSnap), endSnapDelay);
     }
 
     private void CompleteRound()
