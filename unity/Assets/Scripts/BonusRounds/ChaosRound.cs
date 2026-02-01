@@ -37,7 +37,7 @@ public class ChaosRound : MonoBehaviour
         // Show title screen
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundInfo("🃏 CHAOS CARD 🃏","Everyone gets a NEW mask!");
+            UIManager.Instance.ShowRoundInfo("CHAOS CARD","Everyone gets a NEW mask!");
         }
         else
         {
