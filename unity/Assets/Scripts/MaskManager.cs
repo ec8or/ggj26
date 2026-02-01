@@ -204,6 +204,54 @@ public class MaskManager : MonoBehaviour
         rt.localScale = originalScale;
     }
 
+    public void AnimateEliminatedMask(int maskId)
+    {
+        if (!maskIdToDisplay.ContainsKey(maskId)) return;
+
+        GameObject maskObj = maskIdToDisplay[maskId];
+        RectTransform rt = maskObj.GetComponent<RectTransform>();
+        if (rt == null) return;
+
+        // Remove from tracking
+        activeMaskDisplays.Remove(maskObj);
+        maskIdToDisplay.Remove(maskId);
+
+        // Animate removal
+        StartCoroutine(EliminatedMaskAnimation(rt, maskObj));
+    }
+
+    private System.Collections.IEnumerator EliminatedMaskAnimation(RectTransform rt, GameObject maskObj)
+    {
+        Vector3 originalScale = rt.localScale;
+        UnityEngine.UI.Image img = maskObj.GetComponent<UnityEngine.UI.Image>();
+        Color originalColor = img != null ? img.color : Color.white;
+
+        float duration = 0.5f;
+        float elapsed = 0f;
+
+        // Shrink and fade out
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            float easeIn = Mathf.Pow(t, 2f); // Quadratic ease-in
+
+            rt.localScale = Vector3.Lerp(originalScale, Vector3.zero, easeIn);
+
+            if (img != null)
+            {
+                Color c = originalColor;
+                c.a = Mathf.Lerp(1f, 0f, easeIn);
+                img.color = c;
+            }
+
+            yield return null;
+        }
+
+        // Destroy the object
+        Destroy(maskObj);
+    }
+
     public Sprite GetMaskSprite(int maskId)
     {
         return maskSprites.ContainsKey(maskId) ? maskSprites[maskId] : null;
@@ -212,5 +260,15 @@ public class MaskManager : MonoBehaviour
     public List<GameObject> GetActiveMaskDisplays()
     {
         return activeMaskDisplays;
+    }
+
+    public List<int> GetAvailableMaskIds()
+    {
+        List<int> ids = new List<int>();
+        for (int i = 1; i <= maskSprites.Count; i++)
+        {
+            ids.Add(i);
+        }
+        return ids;
     }
 }

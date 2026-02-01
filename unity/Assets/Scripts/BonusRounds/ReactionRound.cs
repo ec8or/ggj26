@@ -5,29 +5,17 @@ using System.Linq;
 public class ReactionRound : MonoBehaviour
 {
     [Header("Timing")]
-    [SerializeField] private float minWaitTime = 2f;
-    [SerializeField] private float maxWaitTime = 5f;
-    [SerializeField] private float reactionWindow = 3f;
-
-    [Header("Elimination Rules")]
-    [SerializeField] private int minEliminations = 1; // Always eliminate at least this many
-    [SerializeField] private int maxEliminations = 999; // Never eliminate more than this
-    [SerializeField] private bool eliminateSlowestPercent = true; // If true, eliminate slowest X%
-    [SerializeField] [Range(0f, 1f)] private float eliminationPercent = 0.5f; // 50% = half eliminated
-
-    [Header("Visual Feedback")]
-    [SerializeField] private Transform maskDisplayContainer; // Container for showing tapped masks
-    [SerializeField] private GameObject maskDisplayPrefab; // Prefab with Image component
-    [SerializeField] private float firstPlaceScale = 2.5f; // Biggest mask
-    [SerializeField] private float lastPlaceScale = 0.5f; // Smallest mask
+    [SerializeField] private float minRedLightTime = 2f;
+    [SerializeField] private float maxRedLightTime = 5f;
+    [SerializeField] private float greenLightDuration = 2f; // How long to tap after GO
 
     private Dictionary<string, long> playerReactionTimes = new Dictionary<string, long>();
-    private List<GameObject> displayedMasks = new List<GameObject>();
-    private int tapOrder = 0; // Track order of taps
+    private HashSet<string> eliminatedDuringRed = new HashSet<string>();
     private long goSignalTime;
     private bool waitingForGo = false;
-    private bool active = false;
+    private bool greenLightActive = false;
     private float timer;
+    private int cycleCount = 0;
 
     void Start()
     {
@@ -39,46 +27,81 @@ public class ReactionRound : MonoBehaviour
 
     public void StartReactionRound()
     {
-        waitingForGo = true;
-        active = false;
-        playerReactionTimes.Clear();
-        tapOrder = 0;
+        cycleCount = 0;
 
-        // Clear any previous masks
-        ClearDisplayedMasks();
-
-        Debug.Log("⚡ Reaction Round: Wait for GO!");
+        Debug.Log("⚡ FINAL ROUND: Reaction Round - Red Light Green Light!");
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundTitle("REACTION ROUND\n\nWAIT...");
-            UIManager.Instance.ShowRedIndicator(); // Show RED square
+            UIManager.Instance.ShowRoundTitle("FINAL ROUND\nRED LIGHT GREEN LIGHT");
         }
 
-        // Wait 2-5 seconds before GO signal
-        float waitTime = Random.Range(minWaitTime, maxWaitTime);
-        Invoke(nameof(ShowGoSignal), waitTime);
+        // Display ALL remaining masks on screen
+        var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
+        var allMaskIds = alivePlayers.Select(p => p.MaskId).ToList();
+
+        if (MaskManager.Instance != null)
+        {
+            MaskManager.Instance.DisplayMasks(allMaskIds);
+        }
+
+        Debug.Log($"⚡ Showing all {allMaskIds.Count} remaining masks");
+
+        // Start first cycle after delay
+        Invoke(nameof(StartRedLight), 3f);
     }
 
-    void ShowGoSignal()
+    void StartRedLight()
     {
-        waitingForGo = false;
-        active = true;
-        goSignalTime = System.DateTimeOffset.Now.ToUnixTimeMilliseconds();
-        timer = reactionWindow;
+        cycleCount++;
+        int aliveCount = PlayerManager.Instance.GetAliveCount();
 
-        Debug.Log("⚡ GO!");
+        Debug.Log($"⚡ Cycle {cycleCount}: {aliveCount} players remaining");
+
+        // Check if only 1 player left - they're the winner!
+        if (aliveCount <= 1)
+        {
+            ShowWinner();
+            return;
+        }
+
+        waitingForGo = true;
+        greenLightActive = false;
+        playerReactionTimes.Clear();
+        eliminatedDuringRed.Clear();
+
+        Debug.Log("🔴 RED LIGHT - Don't tap!");
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundTitle("REACTION ROUND\n\nGO!!!");
-            UIManager.Instance.ShowGreenIndicator(); // Show GREEN square
+            UIManager.Instance.ShowRoundTitle("RED LIGHT\n\nDON'T TAP!");
+            UIManager.Instance.ShowRedIndicator();
+        }
+
+        // Wait random time before GO
+        float waitTime = Random.Range(minRedLightTime, maxRedLightTime);
+        Invoke(nameof(StartGreenLight), waitTime);
+    }
+
+    void StartGreenLight()
+    {
+        waitingForGo = false;
+        greenLightActive = true;
+        goSignalTime = System.DateTimeOffset.Now.ToUnixTimeMilliseconds();
+        timer = greenLightDuration;
+
+        Debug.Log("🟢 GREEN LIGHT - TAP NOW!");
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowRoundTitle("GREEN LIGHT\n\nGO!!!");
+            UIManager.Instance.ShowGreenIndicator();
         }
     }
 
     void Update()
     {
-        if (!active) return;
+        if (!greenLightActive) return;
 
         timer -= Time.deltaTime;
 
@@ -89,199 +112,120 @@ public class ReactionRound : MonoBehaviour
 
         if (timer <= 0)
         {
-            EvaluateReactionRound();
+            EvaluateCycle();
         }
     }
 
     void OnTapReceived(TapData tapData)
     {
+        var player = PlayerManager.Instance.GetPlayer(tapData.PlayerId);
+        if (player == null || !player.IsAlive) return;
+
         if (waitingForGo)
         {
-            // Tapped too early - eliminate immediately
-            Debug.Log($"Player {tapData.PlayerId} tapped too early!");
+            // Tapped during RED - eliminate immediately!
+            Debug.Log($"❌ Player {tapData.PlayerId} (Mask #{player.MaskId}) tapped during RED - ELIMINATED!");
+            eliminatedDuringRed.Add(tapData.PlayerId);
             PlayerManager.Instance.EliminatePlayer(tapData.PlayerId, "too_early");
+
+            // Remove their mask from display immediately with animation
+            if (MaskManager.Instance != null)
+            {
+                MaskManager.Instance.AnimateEliminatedMask(player.MaskId);
+            }
+
             return;
         }
 
-        if (!active) return;
+        if (!greenLightActive) return;
 
         // Record reaction time (only first tap counts)
         if (!playerReactionTimes.ContainsKey(tapData.PlayerId))
         {
             long reactionTime = tapData.Timestamp - goSignalTime;
             playerReactionTimes[tapData.PlayerId] = reactionTime;
-            tapOrder++;
 
-            Debug.Log($"Player {tapData.PlayerId} reaction time: {reactionTime}ms (place #{tapOrder})");
-
-            // Display mask on screen with size based on order (first = biggest)
-            DisplayTappedMask(tapData.PlayerId, tapOrder);
+            Debug.Log($"✓ Player {tapData.PlayerId} (Mask #{player.MaskId}) reaction: {reactionTime}ms");
         }
     }
 
-    void EvaluateReactionRound()
+    void EvaluateCycle()
     {
-        active = false;
+        greenLightActive = false;
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.HideRoundTitle();
-            UIManager.Instance.HideReactionIndicators(); // Hide red/green squares
+            UIManager.Instance.HideReactionIndicators();
         }
 
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
 
-        // Calculate how many to eliminate
-        int eliminateCount;
-        if (eliminateSlowestPercent)
+        // Find slowest player who didn't tap OR who was slowest
+        string slowestPlayerId = null;
+        long slowestTime = -1;
+
+        // First priority: Anyone who didn't tap at all
+        foreach (var player in alivePlayers)
         {
-            eliminateCount = Mathf.CeilToInt(alivePlayers.Count * eliminationPercent);
-        }
-        else
-        {
-            eliminateCount = minEliminations;
-        }
-
-        // Enforce min/max bounds & ensure at least 1 is eliminated
-        eliminateCount = Mathf.Clamp(eliminateCount, minEliminations, Mathf.Min(maxEliminations, alivePlayers.Count));
-        eliminateCount = Mathf.Max(eliminateCount, 1); // ALWAYS eliminate at least 1
-
-        Debug.Log($"⚡ Evaluating Reaction Round: {alivePlayers.Count} alive, eliminating {eliminateCount}");
-
-        // Sort by reaction time (slowest first for elimination)
-        var sorted = playerReactionTimes.OrderByDescending(kvp => kvp.Value).ToList();
-
-        int eliminatedCount = 0;
-
-        // First: Eliminate anyone who didn't tap
-        foreach (var player in alivePlayers.ToList())
-        {
-            if (!playerReactionTimes.ContainsKey(player.Id))
+            if (!playerReactionTimes.ContainsKey(player.Id) && !eliminatedDuringRed.Contains(player.Id))
             {
-                PlayerManager.Instance.EliminatePlayer(player.Id, "too_slow");
-                eliminatedCount++;
+                slowestPlayerId = player.Id;
+                break; // Found non-tapper
             }
         }
 
-        // Second: Eliminate slowest players until we hit eliminateCount
-        if (eliminatedCount < eliminateCount)
+        // If everyone tapped, eliminate the slowest
+        if (slowestPlayerId == null && playerReactionTimes.Count > 0)
         {
-            foreach (var kvp in sorted)
-            {
-                if (eliminatedCount >= eliminateCount) break;
+            var slowest = playerReactionTimes.OrderByDescending(kvp => kvp.Value).First();
+            slowestPlayerId = slowest.Key;
+            slowestTime = slowest.Value;
+        }
 
-                var player = PlayerManager.Instance.GetPlayer(kvp.Key);
-                if (player != null && player.IsAlive)
+        // Eliminate the slowest/missing player
+        if (slowestPlayerId != null)
+        {
+            var player = PlayerManager.Instance.GetPlayer(slowestPlayerId);
+            if (player != null && player.IsAlive)
+            {
+                Debug.Log($"💀 Eliminating slowest: Mask #{player.MaskId} ({(slowestTime >= 0 ? slowestTime + "ms" : "didn't tap")})");
+                PlayerManager.Instance.EliminatePlayer(slowestPlayerId, "too_slow");
+
+                // Animate mask removal
+                if (MaskManager.Instance != null)
                 {
-                    PlayerManager.Instance.EliminatePlayer(player.Id, "too_slow");
-                    eliminatedCount++;
+                    MaskManager.Instance.AnimateEliminatedMask(player.MaskId);
                 }
             }
         }
 
+        // Check if we're down to 1 player
         int remaining = PlayerManager.Instance.GetAliveCount();
-        Debug.Log($"⚡ Reaction Round complete. {eliminatedCount} eliminated, {remaining} survived.");
+        Debug.Log($"⚡ Cycle {cycleCount} complete. {remaining} players remaining.");
 
-        // Clear displayed masks
-        ClearDisplayedMasks();
+        // Pause before next cycle (or show winner if only 1 left)
+        Invoke(nameof(StartRedLight), 3f);
+    }
 
-        // Notify GameManager
+    void ShowWinner()
+    {
+        Debug.Log("🏆 Only 1 player remaining - showing winner!");
+
+        if (MaskManager.Instance != null)
+        {
+            MaskManager.Instance.ClearMasks();
+        }
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.HideRoundTitle();
+            UIManager.Instance.HideReactionIndicators();
+        }
+
+        // The final alive player is the winner!
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnRoundComplete();
+            GameManager.Instance.OnRoundComplete(); // Will trigger EndGame which shows the winner
         }
-    }
-
-    void DisplayTappedMask(string playerId, int order)
-    {
-        if (maskDisplayContainer == null || maskDisplayPrefab == null)
-        {
-            Debug.LogWarning("⚠️ Mask display container or prefab not assigned!");
-            return;
-        }
-
-        var player = PlayerManager.Instance.GetPlayer(playerId);
-        if (player == null)
-        {
-            Debug.LogWarning($"⚠️ Player {playerId} not found!");
-            return;
-        }
-
-        // Create mask display
-        GameObject maskObj = Instantiate(maskDisplayPrefab, maskDisplayContainer);
-        UnityEngine.UI.Image img = maskObj.GetComponent<UnityEngine.UI.Image>();
-
-        Debug.Log($"🔍 DisplayTappedMask: Image component = {(img != null ? "FOUND" : "NULL")}");
-        Debug.Log($"🔍 MaskManager.Instance = {(MaskManager.Instance != null ? "FOUND" : "NULL")}");
-
-        if (img != null && MaskManager.Instance != null)
-        {
-            Sprite maskSprite = MaskManager.Instance.GetMaskSprite(player.MaskId);
-            Debug.Log($"🔍 GetMaskSprite({player.MaskId}) = {(maskSprite != null ? "FOUND" : "NULL")}");
-
-            if (maskSprite != null)
-            {
-                img.sprite = maskSprite;
-                Debug.Log($"✅ Set sprite for Mask #{player.MaskId}");
-            }
-            else
-            {
-                Debug.LogWarning($"⚠️ No sprite found for Mask #{player.MaskId}!");
-            }
-        }
-
-        // Scale based on order: first = biggest, last = smallest
-        int totalPlayers = PlayerManager.Instance.GetAliveCount();
-        float t = (order - 1) / Mathf.Max(1f, totalPlayers - 1); // 0 to 1
-        float scale = Mathf.Lerp(firstPlaceScale, lastPlaceScale, t);
-
-        RectTransform rt = maskObj.GetComponent<RectTransform>();
-        if (rt != null)
-        {
-            rt.localScale = Vector3.one * scale;
-        }
-
-        displayedMasks.Add(maskObj);
-
-        Debug.Log($"  Displayed Mask #{player.MaskId} at scale {scale:F2}x (order {order})");
-
-        // Arrange masks in grid
-        ArrangeMasks();
-    }
-
-    void ArrangeMasks()
-    {
-        if (displayedMasks.Count == 0) return;
-
-        // Simple horizontal flow layout
-        int masksPerRow = 10;
-        float spacing = 150f;
-        float rowSpacing = 150f;
-
-        for (int i = 0; i < displayedMasks.Count; i++)
-        {
-            int row = i / masksPerRow;
-            int col = i % masksPerRow;
-
-            RectTransform rt = displayedMasks[i].GetComponent<RectTransform>();
-            if (rt != null)
-            {
-                float xPos = (col - masksPerRow / 2f) * spacing;
-                float yPos = -row * rowSpacing;
-                rt.anchoredPosition = new Vector2(xPos, yPos);
-            }
-        }
-    }
-
-    void ClearDisplayedMasks()
-    {
-        foreach (var maskObj in displayedMasks)
-        {
-            if (maskObj != null)
-            {
-                Destroy(maskObj);
-            }
-        }
-        displayedMasks.Clear();
     }
 }

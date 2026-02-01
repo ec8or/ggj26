@@ -4,15 +4,19 @@ using System.Linq;
 
 public class RoundController : MonoBehaviour
 {
+    [Header("Round Settings")]
     [SerializeField] private float roundDuration = 5f; // Seconds to tap
     [SerializeField] private int minMasks = 3;
     [SerializeField] private int maxMasks = 5;
+    [SerializeField] private int snapsPerRound = 5; // How many snaps before moving to next round
 
     private List<int> currentActiveMasks = new List<int>();
     private HashSet<string> playersWhoTapped = new HashSet<string>();
     private HashSet<int> masksAlreadyAnimated = new HashSet<int>();
     private float roundTimer;
     private bool roundActive = false;
+    private int currentSnap = 0;
+    private int totalSnaps = 0;
 
     void Start()
     {
@@ -25,6 +29,29 @@ public class RoundController : MonoBehaviour
 
     public void StartRound()
     {
+        currentSnap = 0;
+        totalSnaps = snapsPerRound;
+
+        // Show title screen only once at the start
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowRoundTitle($"SNAP ROUND\n{totalSnaps} Snaps!");
+        }
+
+        Invoke(nameof(StartNextSnap), 2f); // Delay before first snap
+    }
+
+    private void StartNextSnap()
+    {
+        currentSnap++;
+
+        if (currentSnap > totalSnaps)
+        {
+            // All snaps complete, move to next round
+            CompleteRound();
+            return;
+        }
+
         currentActiveMasks.Clear();
         playersWhoTapped.Clear();
         masksAlreadyAnimated.Clear();
@@ -37,6 +64,7 @@ public class RoundController : MonoBehaviour
         if (alivePlayers.Count == 0)
         {
             Debug.LogError("No alive players to start round!");
+            CompleteRound();
             return;
         }
 
@@ -52,7 +80,13 @@ public class RoundController : MonoBehaviour
             MaskManager.Instance.DisplayMasks(currentActiveMasks);
         }
 
-        Debug.Log($"🎭 Round active! Masks shown: {string.Join(", ", currentActiveMasks.Select(m => $"#{m}"))}");
+        // Update UI with snap counter
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowRoundTitle($"SNAP {currentSnap}/{totalSnaps}");
+        }
+
+        Debug.Log($"🎭 Snap {currentSnap}/{totalSnaps} active! Masks shown: {string.Join(", ", currentActiveMasks.Select(m => $"#{m}"))}");
     }
 
     void Update()
@@ -105,7 +139,7 @@ public class RoundController : MonoBehaviour
         }
 
         var alivePlayers = PlayerManager.Instance.GetAlivePlayers();
-        int eliminatedThisRound = 0;
+        int eliminatedThisSnap = 0;
 
         foreach (var player in alivePlayers)
         {
@@ -118,16 +152,29 @@ public class RoundController : MonoBehaviour
             if (playerTapped && !playerMaskWasActive)
             {
                 PlayerManager.Instance.EliminatePlayer(player.Id, "wrong_tap");
-                eliminatedThisRound++;
+                eliminatedThisSnap++;
             }
             else if (!playerTapped && playerMaskWasActive)
             {
                 PlayerManager.Instance.EliminatePlayer(player.Id, "missed_tap");
-                eliminatedThisRound++;
+                eliminatedThisSnap++;
             }
         }
 
-        Debug.Log($"📊 Round complete. {eliminatedThisRound} players eliminated.");
+        Debug.Log($"📊 Snap {currentSnap}/{totalSnaps} complete. {eliminatedThisSnap} players eliminated.");
+
+        // Start next snap after delay
+        Invoke(nameof(StartNextSnap), 1.5f);
+    }
+
+    private void CompleteRound()
+    {
+        Debug.Log($"📊 Snap Round complete! All {totalSnaps} snaps finished.");
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.HideRoundTitle();
+        }
 
         // Notify GameManager
         if (GameManager.Instance != null)

@@ -155,6 +155,50 @@ public class PlayerManager : MonoBehaviour
             player.TapCount = 0;
         }
     }
+
+    public void RandomizeAllMasks()
+    {
+        var alivePlayers = GetAlivePlayers();
+
+        // IMPORTANT: Only use masks that are currently in play (from alive players)
+        // This prevents reintroducing eliminated players' masks
+        List<int> masksInPlay = new List<int>();
+        foreach (var player in alivePlayers)
+        {
+            masksInPlay.Add(player.MaskId);
+        }
+
+        if (masksInPlay.Count == 0)
+        {
+            Debug.LogWarning("⚠️ No masks in play to randomize!");
+            return;
+        }
+
+        Debug.Log($"🎭 Randomizing from {masksInPlay.Count} masks currently in play");
+
+        foreach (var player in alivePlayers)
+        {
+            // Assign random mask from the pool of alive players' masks
+            int newMaskId = masksInPlay[UnityEngine.Random.Range(0, masksInPlay.Count)];
+            player.MaskId = newMaskId;
+
+            Debug.Log($"🔀 Player {player.Id} reassigned to Mask #{newMaskId}");
+
+            // Send new mask to mobile client
+            NetworkManager.Instance.EmitMaskAssigned(player.Id, newMaskId);
+        }
+    }
+
+    public List<int> GetAliveMaskIds()
+    {
+        var alivePlayers = GetAlivePlayers();
+        List<int> maskIds = new List<int>();
+        foreach (var player in alivePlayers)
+        {
+            maskIds.Add(player.MaskId);
+        }
+        return maskIds;
+    }
 }
 
 [System.Serializable]

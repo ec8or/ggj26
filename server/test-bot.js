@@ -79,19 +79,36 @@ class Bot {
   startAutoTap() {
     if (this.tapInterval) return; // Already tapping
 
-    const intervalMs = 1000 / this.tapsPerSecond;
-    this.tapInterval = setInterval(() => {
-      if (this.isAlive) {
-        this.tap();
-      } else {
-        this.stopAutoTap();
-      }
-    }, intervalMs);
+    const baseIntervalMs = 1000 / this.tapsPerSecond;
+
+    // Add random initial delay (0-50% of interval) so bots don't start in sync
+    const initialDelay = Math.random() * baseIntervalMs * 0.5;
+
+    setTimeout(() => {
+      if (!this.isAlive) return;
+
+      // Tap with randomized intervals to prevent lockstep
+      const tapWithRandomness = () => {
+        if (this.isAlive) {
+          this.tap();
+
+          // Add ±20% randomness to each tap interval
+          const variance = baseIntervalMs * 0.2;
+          const randomInterval = baseIntervalMs + (Math.random() - 0.5) * variance;
+
+          this.tapInterval = setTimeout(tapWithRandomness, randomInterval);
+        } else {
+          this.stopAutoTap();
+        }
+      };
+
+      tapWithRandomness();
+    }, initialDelay);
   }
 
   stopAutoTap() {
     if (this.tapInterval) {
-      clearInterval(this.tapInterval);
+      clearTimeout(this.tapInterval);
       this.tapInterval = null;
     }
   }
