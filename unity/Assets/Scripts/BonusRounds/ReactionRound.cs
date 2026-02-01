@@ -82,15 +82,7 @@ public class ReactionRound : MonoBehaviour
             UIManager.Instance.ShowVisualTimer();
         }
 
-        // Show crosses on anyone who tapped during red
-        foreach (string playerId in tappedDuringRed)
-        {
-            var player = PlayerManager.Instance.GetPlayer(playerId);
-            if (player != null && player.IsAlive)
-            {
-                MaskManager.Instance.ShowCrossOverlay(player.MaskId, 5.0f);
-            }
-        }
+        // Crosses are already showing from red light phase (with 999f duration)
     }
 
     void Update()
@@ -134,10 +126,10 @@ public class ReactionRound : MonoBehaviour
                 Debug.Log($"❌ Player {tapData.PlayerId} (Mask #{player.MaskId}) tapped during RED - marked!");
                 tappedDuringRed.Add(tapData.PlayerId);
 
-                // Show cross immediately
+                // Show cross permanently (until round ends)
                 if (MaskManager.Instance != null)
                 {
-                    MaskManager.Instance.ShowCrossOverlay(player.MaskId, 5.0f);
+                    MaskManager.Instance.ShowCrossOverlay(player.MaskId, 999f);
                 }
             }
             return;
@@ -194,16 +186,23 @@ public class ReactionRound : MonoBehaviour
         {
             if (MaskManager.Instance != null)
             {
-                if (player.Id == slowestPlayerId || tappedDuringRed.Contains(player.Id))
+                // Skip people who already have crosses from red light (don't re-show)
+                if (tappedDuringRed.Contains(player.Id))
                 {
-                    // Slowest or tapped during red = cross
-                    MaskManager.Instance.ShowCrossOverlay(player.MaskId, 5.0f);
-                    Debug.Log($"❌ Mask #{player.MaskId} gets CROSS");
+                    Debug.Log($"❌ Mask #{player.MaskId} already has CROSS (tapped during red)");
+                    continue;
+                }
+
+                if (player.Id == slowestPlayerId)
+                {
+                    // Slowest tapper = cross
+                    MaskManager.Instance.ShowCrossOverlay(player.MaskId, 999f);
+                    Debug.Log($"❌ Mask #{player.MaskId} gets CROSS (slowest)");
                 }
                 else if (playerReactionTimes.ContainsKey(player.Id))
                 {
                     // Tapped on green and not slowest = tick
-                    MaskManager.Instance.ShowTickOverlay(player.MaskId, 5.0f);
+                    MaskManager.Instance.ShowTickOverlay(player.MaskId, 999f);
                     Debug.Log($"✓ Mask #{player.MaskId} gets TICK");
                 }
             }
