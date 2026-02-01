@@ -4,7 +4,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    public enum GameState { Lobby, RoundIntro, Playing, GameOver }
+    public enum GameState { Lobby, RoundIntro, Playing, RoundOver, GameOver }
     public GameState CurrentState { get; private set; } = GameState.Lobby;
 
     public enum RoundType { Snap, Sprint, Reaction, Precision, Advanced, Chaos }
@@ -72,6 +72,9 @@ public class GameManager : MonoBehaviour
             }else if (CurrentState == GameState.Playing)
             {
                 EndRound();
+            }else if (CurrentState == GameState.RoundOver)
+            { 
+                NextRound();
             }
         }else if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
         {
@@ -257,6 +260,10 @@ public class GameManager : MonoBehaviour
     // Public method for rounds to call when they complete
     public void OnRoundComplete()
     {
-        Invoke(nameof(NextRound), 2f); // 2 second delay between rounds
+        Debug.Log($"=== OnRoundComplete ROUND: {CurrentRound} ===");
+        
+        //Invoke(nameof(NextRound), 2f); // 2 second delay between rounds
+
+        CurrentState = GameState.RoundOver;
     }
 }

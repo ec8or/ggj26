@@ -47,7 +47,7 @@ public class SprintRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundTitle($"SPRINT ROUND\nTap {requiredTaps}x in {roundDuration}s!");
+            UIManager.Instance.ShowRoundInfo($"SPRINT ROUND", $"Tap {requiredTaps}x in {roundDuration}s!");
         }
     }
 

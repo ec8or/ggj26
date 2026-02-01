@@ -33,7 +33,7 @@ public class ReactionRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundTitle("FINAL ROUND\nRED LIGHT GREEN LIGHT");
+            UIManager.Instance.ShowRoundInfo("FINAL ROUND", "RED LIGHT GREEN LIGHT");
         }
 
         // Display ALL remaining masks on screen
@@ -74,7 +74,7 @@ public class ReactionRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundTitle("RED LIGHT\n\nDON'T TAP!");
+            UIManager.Instance.ShowRoundInfo("RED LIGHT", "DON'T TAP!");
             UIManager.Instance.ShowRedIndicator();
         }
 
@@ -94,7 +94,7 @@ public class ReactionRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundTitle("GREEN LIGHT\n\nGO!!!");
+            UIManager.Instance.ShowRoundInfo("GREEN LIGHT", "GO!!!");
             UIManager.Instance.ShowGreenIndicator();
         }
     }

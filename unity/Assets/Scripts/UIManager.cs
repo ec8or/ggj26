@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -10,6 +11,8 @@ public class UIManager : MonoBehaviour
 
     private Dictionary<string, MaskDisplayGrid> lobbyMaskDisplayPlayerDict = new Dictionary<string, MaskDisplayGrid>();
     private List<MaskDisplayGrid> lobbyMaskDisplays = new List<MaskDisplayGrid>();
+    
+    private List<MaskDisplayGrid> interRoundMaskDisplays = new List<MaskDisplayGrid>();
 
     [Header("Lobby")]
     [SerializeField] private GameObject qrCodePanel;
@@ -22,13 +25,18 @@ public class UIManager : MonoBehaviour
     [FormerlySerializedAs("lobbyMaskPrefab")] [SerializeField] private MaskDisplayGrid gridMaskPrefab; // Small mask prefab for lobby
 
     [Header("Game HUD")]
+    
     [SerializeField] private TextMeshProUGUI playerCountText;
     [SerializeField] private TextMeshProUGUI roundNumberText;
     [SerializeField] private TextMeshProUGUI roundTimerText;
 
+    [Header("Interround Grid")]
+    [SerializeField] private RectTransform interRoundGridContainer; // Container for showing joined players
+    
     [Header("Round Title")]
     [SerializeField] private GameObject roundTitlePanel;
     [SerializeField] private TextMeshProUGUI roundTitleText;
+    [SerializeField] private TextMeshProUGUI roundMessageText;
 
     [Header("Visual Timer")]
     [SerializeField] private GameObject visualTimerPanel; // Container for visual timer
@@ -84,6 +92,25 @@ public class UIManager : MonoBehaviour
     {
         UpdatePlayerCount();
         UpdateRoundNumber();
+        
+        var checkState = GameManager.Instance.CurrentState;
+        if (checkState != currentGameState)
+        {
+            OnCurrentStateChanged(checkState);
+        }
+    }
+
+    GameManager.GameState currentGameState = GameManager.GameState.Lobby;
+    void OnCurrentStateChanged(GameManager.GameState state)
+    {
+        currentGameState = state;
+
+        interRoundGridContainer.gameObject.SetActive(false);
+        if (currentGameState == GameManager.GameState.RoundOver)
+        {
+            interRoundGridContainer.gameObject.SetActive(true);
+            RefreshInterRoundMasks();
+        }
     }
 
     // Lobby
@@ -193,8 +220,10 @@ public class UIManager : MonoBehaviour
     }
 
     // Round Title
-    public void ShowRoundTitle(string title)
+    public void ShowRoundInfo(string title, string message, float autoTimeout = -1f)
     {
+        Debug.Log($"ShowRoundInfo - title: {title}, autoTimeout: {autoTimeout}");
+        
         if (roundTitlePanel != null)
         {
             roundTitlePanel.SetActive(true);
@@ -203,8 +232,22 @@ public class UIManager : MonoBehaviour
         if (roundTitleText != null)
         {
             roundTitleText.text = title;
+            roundMessageText.text = message;
+        }
+
+        if (autoTimeout > 0f)
+        {
+            StartCoroutine(AutoTimeOutRoundInfoPanel(autoTimeout));
         }
     }
+
+    IEnumerator AutoTimeOutRoundInfoPanel(float time)
+    {
+        yield return new WaitForSeconds(time);
+        
+        HideRoundTitle();
+    }
+    
 
     public void HideRoundTitle()
     {
@@ -370,6 +413,62 @@ public class UIManager : MonoBehaviour
 
         Debug.Log("🧹 Cleared all lobby masks");
     }
+    
+    
+    public void ClearInterRoundMasks()
+    {
+        foreach (var kvp in interRoundMaskDisplays)
+        {
+            if (kvp != null)
+            {
+                Destroy(kvp.gameObject);
+            }
+        }
+        interRoundMaskDisplays.Clear();
+    }
+    void CreateInterRoundMasks()
+    {
+        ClearInterRoundMasks();
+        
+        var playerCount = PlayerManager.Instance.maxPlayerCount;
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            MaskDisplayGrid maskObj = Instantiate(gridMaskPrefab, interRoundGridContainer);
+            
+            interRoundMaskDisplays.Add(maskObj);
+        }
+        
+        RefreshInterRoundMasks();
+    }
+
+    void RefreshInterRoundMasks()
+    {
+        if (interRoundMaskDisplays.Count == 0)
+        {
+            CreateInterRoundMasks();
+        }
+        
+        var allPlayers = PlayerManager.Instance.GetAllPlayers();
+
+        for (int i = 0; i < interRoundMaskDisplays.Count; i++)
+        {
+            interRoundMaskDisplays[i].Reset();
+        }
+        
+
+        for (int i = 0; i < interRoundMaskDisplays.Count; i++)
+        {
+            if (i < allPlayers.Count)
+            {
+                var player = allPlayers[i];
+                
+                interRoundMaskDisplays[i].SetPlayer(player);
+            }
+        }
+    }
+    
+    
 
     // Winner
     public void ShowWinner(int maskId)

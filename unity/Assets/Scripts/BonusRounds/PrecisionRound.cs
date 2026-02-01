@@ -47,7 +47,7 @@ public class PrecisionRound : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundTitle($"PRECISION ROUND\n\nTap at exactly {targetTime:F1}s!");
+            UIManager.Instance.ShowRoundInfo($"PRECISION ROUND", $"Tap at exactly {targetTime:F1}s!");
         }
     }
 

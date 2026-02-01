@@ -35,7 +35,7 @@ public class RoundController : MonoBehaviour
         // Show title screen only once at the start
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundTitle($"SNAP ROUND\n{totalSnaps} Snaps!");
+            UIManager.Instance.ShowRoundInfo($"SNAP ROUND", $"{totalSnaps} Snaps!", 2f);
         }
 
         Invoke(nameof(StartNextSnap), 2f); // Delay before first snap
@@ -83,7 +83,7 @@ public class RoundController : MonoBehaviour
         // Update UI with snap counter
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowRoundTitle($"SNAP {currentSnap}/{totalSnaps}");
+            UIManager.Instance.ShowRoundInfo($"SNAP {currentSnap}/{totalSnaps}", "");
         }
 
         Debug.Log($"🎭 Snap {currentSnap}/{totalSnaps} active! Masks shown: {string.Join(", ", currentActiveMasks.Select(m => $"#{m}"))}");

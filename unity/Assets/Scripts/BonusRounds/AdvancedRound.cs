@@ -80,15 +80,7 @@ public class AdvancedRound : MonoBehaviour
         }
 
         Debug.Log($"💀 Advanced Round! Masks with effects: {string.Join(", ", currentActiveMasks.Select(m => $"#{m}"))}");
-
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ShowRoundTitle("ADVANCED ROUND\nFind your mask!");
-        }
-        else
-        {
-            Debug.LogError("❌ UIManager.Instance is NULL!");
-        }
+        
     }
 
     void ApplyRandomEffects()

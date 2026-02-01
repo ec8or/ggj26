@@ -6,8 +6,10 @@ using UnityEngine.UI;
 public class MaskDisplayGrid : MonoBehaviour
 {
 
-    public GameObject borderGrp;
+    public GameObject borderActiveGrp;
+    public GameObject borderInactiveGrp;
     public Image mainImg;
+    public GameObject outGrp;
 
     
     public Player player { get; private set; }
@@ -28,8 +30,13 @@ public class MaskDisplayGrid : MonoBehaviour
 
     public void Refresh()
     {
+        borderActiveGrp.SetActive(player != null);
+        borderInactiveGrp.SetActive(player == null);
+        
         mainImg.gameObject.SetActive(player != null);
 
+        outGrp.SetActive(player != null && !player.IsAlive);
+        
         if (player != null)
         {
             Sprite maskSprite = MaskManager.Instance.GetMaskSprite(player.MaskId);
@@ -43,6 +50,8 @@ public class MaskDisplayGrid : MonoBehaviour
                 Color color = Color.HSVToRGB((player.MaskId * 6f) / 360f, 0.7f, 0.9f);
                 mainImg.color = color;
             }
+            
+            mainImg.color = player.IsAlive ? Color.white : Color.white * 0.4f;
         }
     }
     
